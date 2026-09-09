@@ -24,5 +24,18 @@
       "https://i.imgur.com/veIJtFO.jpeg",
       "https://i.imgur.com/2Pml7qh.png"
     ]
+  },
+  {
+    "id": "trhrt",
+    "title": "trhr",
+    "format": "vertical",
+    "direction": "ltr",
+    "tags": [
+      "trhr"
+    ],
+    "panels": [
+      "https://i.imgur.com/2Pml7qh.png",
+      "blob:https://imgur.com/855d20e4-18f0-42ee-ad5f-7c26432115cd"
+    ]
   }
 ]
