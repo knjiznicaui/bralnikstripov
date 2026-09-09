@@ -348,10 +348,24 @@ button{
 
   user-select:none;
   -webkit-user-drag:none;
+
+  cursor:default;
 }
 
 .reader-img.zoomed{
-  transform:scale(2.2);
+  cursor:grab;
+}
+
+#reader.pan-dragging .reader-img{
+  cursor:grabbing;
+}
+
+#reader.zoom-dragging{
+  cursor:ew-resize;
+}
+
+#reader.zoom-dragging .reader-img{
+  cursor:ew-resize;
 }
 
 /* ZGORNJI MENI */
@@ -491,18 +505,6 @@ button{
   height:auto;
 }
 
-/*
-  Med srednjim klikom miške pokažemo, da je uporabnik
-  v načinu za zoom.
-*/
-#reader.zoom-dragging{
-  cursor:ew-resize;
-}
-
-#reader.zoom-dragging .reader-img{
-  cursor:ew-resize;
-}
-
 @media(max-width:600px){
 
   .hero{
@@ -526,7 +528,7 @@ button{
 "use strict";
 
 /* =========================================================
-   GUTTER PUBLIC READER
+   RADOVEDNI PUBLIC READER
    ========================================================= */
 
 const REPO_OWNER = "knjiznicaui";
@@ -579,6 +581,17 @@ let wheelLocked=false;
 let middleMouseDown=false;
 let middleStartX=0;
 let middleStartZoom=1;
+
+/* ================= LEFT MOUSE PANNING ================= */
+
+let panMouseDown=false;
+let panStartX=0;
+let panStartY=0;
+let panStartPanX=0;
+let panStartPanY=0;
+
+let panX=0;
+let panY=0;
 
 const MIN_ZOOM=1;
 const MAX_ZOOM=4;
@@ -1025,6 +1038,11 @@ async function openReader(id,start=0){
 
   zoomed=false;
 
+  panX=0;
+  panY=0;
+
+  panMouseDown=false;
+
   readerVisible=true;
 
   wheelLocked=false;
@@ -1042,6 +1060,8 @@ async function openReader(id,start=0){
   await requestOrientation();
 
 }
+
+/* ================= ORIENTATION ================= */
 
 async function requestOrientation(){
 
@@ -1269,6 +1289,8 @@ function renderReader(){
 
   setupMiddleMouseZoom();
 
+  setupLeftMousePan();
+
   preload();
 
 }
@@ -1326,6 +1348,15 @@ function resizeReader(){
       "100%";
 
   }
+
+  /*
+    Po spremembi velikosti zaslona
+    omejimo trenutno pozicijo slike,
+    da ne more ostati izven prostora.
+  */
+  clampPan();
+
+  updateImageTransform();
 
 }
 
@@ -1590,9 +1621,11 @@ function setupMiddleMouseZoom(){
       );
 
       try{
+
         stage.setPointerCapture(
           e.pointerId
         );
+
       }catch(err){}
 
     }
@@ -1649,9 +1682,11 @@ function setupMiddleMouseZoom(){
       );
 
       try{
+
         stage.releasePointerCapture(
           e.pointerId
         );
+
       }catch(err){}
 
     }
@@ -1672,10 +1707,6 @@ function setupMiddleMouseZoom(){
     }
   );
 
-  /*
-    Prepreči odpiranje menija brskalnika
-    ob pritisku srednjega gumba.
-  */
   stage.addEventListener(
     "mousedown",
     e=>{
@@ -1701,6 +1732,331 @@ function setupMiddleMouseZoom(){
 
     }
   );
+
+}
+
+/* ================= LEFT MOUSE PANNING ================= */
+
+function setupLeftMousePan(){
+
+  const stage=
+    document.getElementById(
+      "reader-stage"
+    );
+
+  const reader=
+    document.getElementById(
+      "reader"
+    );
+
+  if(!stage || !reader) return;
+
+  stage.addEventListener(
+    "pointerdown",
+    e=>{
+
+      /*
+        Panning uporabljamo samo z
+        levim gumbom prave miške.
+
+        Telefonski touch ostane
+        namenjen swipe upravljanju.
+      */
+      if(
+        e.pointerType!=="mouse" ||
+        e.button!==0
+      ){
+
+        return;
+
+      }
+
+      /*
+        Pri 1x ni potrebe po premikanju.
+      */
+      if(getCurrentZoom()<=1){
+
+        return;
+
+      }
+
+      e.preventDefault();
+
+      panMouseDown=true;
+
+      panStartX=
+        e.clientX;
+
+      panStartY=
+        e.clientY;
+
+      panStartPanX=
+        panX;
+
+      panStartPanY=
+        panY;
+
+      reader.classList.add(
+        "pan-dragging"
+      );
+
+      try{
+
+        stage.setPointerCapture(
+          e.pointerId
+        );
+
+      }catch(err){}
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointermove",
+    e=>{
+
+      if(!panMouseDown) return;
+
+      if(e.pointerType!=="mouse") return;
+
+      e.preventDefault();
+
+      const dx=
+        e.clientX-panStartX;
+
+      const dy=
+        e.clientY-panStartY;
+
+      panX=
+        panStartPanX+dx;
+
+      panY=
+        panStartPanY+dy;
+
+      clampPan();
+
+      updateImageTransform();
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointerup",
+    e=>{
+
+      if(
+        !panMouseDown ||
+        e.button!==0
+      ){
+
+        return;
+
+      }
+
+      e.preventDefault();
+
+      panMouseDown=false;
+
+      reader.classList.remove(
+        "pan-dragging"
+      );
+
+      try{
+
+        stage.releasePointerCapture(
+          e.pointerId
+        );
+
+      }catch(err){}
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointercancel",
+    e=>{
+
+      if(!panMouseDown) return;
+
+      panMouseDown=false;
+
+      reader.classList.remove(
+        "pan-dragging"
+      );
+
+    }
+  );
+
+  /*
+    Prepreči vlečenje slike s strani
+    brskalnika.
+  */
+  stage.addEventListener(
+    "dragstart",
+    e=>{
+
+      e.preventDefault();
+
+    }
+  );
+
+}
+
+/* ================= PAN CALCULATION ================= */
+
+function getPanBounds(){
+
+  const frame=
+    document.getElementById(
+      "reader-frame"
+    );
+
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
+
+  if(!frame || !img){
+
+    return {
+      x:0,
+      y:0
+    };
+
+  }
+
+  const frameWidth=
+    frame.clientWidth;
+
+  const frameHeight=
+    frame.clientHeight;
+
+  if(
+    !frameWidth ||
+    !frameHeight ||
+    !img.naturalWidth ||
+    !img.naturalHeight
+  ){
+
+    return {
+      x:0,
+      y:0
+    };
+
+  }
+
+  /*
+    Izračunamo velikost slike pri 1x,
+    tako kot jo omejuje max-width/max-height.
+  */
+  const baseScale=
+    Math.min(
+      frameWidth/img.naturalWidth,
+      frameHeight/img.naturalHeight,
+      1
+    );
+
+  const baseWidth=
+    img.naturalWidth*baseScale;
+
+  const baseHeight=
+    img.naturalHeight*baseScale;
+
+  const zoom=
+    getCurrentZoom();
+
+  const scaledWidth=
+    baseWidth*zoom;
+
+  const scaledHeight=
+    baseHeight*zoom;
+
+  /*
+    Slika se lahko premika samo toliko,
+    da njen rob še vedno pokriva okvir.
+  */
+  const maxPanX=
+    Math.max(
+      0,
+      (scaledWidth-frameWidth)/2
+    );
+
+  const maxPanY=
+    Math.max(
+      0,
+      (scaledHeight-frameHeight)/2
+    );
+
+  return {
+    x:maxPanX,
+    y:maxPanY
+  };
+
+}
+
+function clampPan(){
+
+  const bounds=
+    getPanBounds();
+
+  panX=
+    Math.max(
+      -bounds.x,
+      Math.min(
+        bounds.x,
+        panX
+      )
+    );
+
+  panY=
+    Math.max(
+      -bounds.y,
+      Math.min(
+        bounds.y,
+        panY
+      )
+    );
+
+}
+
+/* ================= IMAGE TRANSFORM ================= */
+
+function updateImageTransform(){
+
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
+
+  if(!img) return;
+
+  const zoom=
+    getCurrentZoom();
+
+  /*
+    Vedno uporabimo sredino kot
+    transform-origin, ker tako
+    panning ostane natančen.
+  */
+  img.style.transformOrigin=
+    "center center";
+
+  img.style.transform=
+    `translate(${panX}px, ${panY}px) scale(${zoom})`;
+
+  if(zoom>1){
+
+    img.classList.add(
+      "zoomed"
+    );
+
+  }else{
+
+    img.classList.remove(
+      "zoomed"
+    );
+
+  }
 
 }
 
@@ -1757,31 +2113,47 @@ function applyZoom(value){
 
     zoomed=false;
 
-    img.classList.remove(
-      "zoomed"
-    );
-
-    img.style.transform=
-      "scale(1)";
+    panX=0;
+    panY=0;
 
   }else{
 
     zoomed=true;
 
-    img.classList.add(
-      "zoomed"
-    );
-
-    img.style.transform=
-      `scale(${zoom})`;
+    /*
+      Pri povečavi preverimo,
+      da trenutni položaj ostane
+      znotraj dovoljenih meja.
+    */
+    clampPan();
 
   }
+
+  updateImageTransform();
 
 }
 
 function resetZoom(){
 
   zoomed=false;
+
+  panX=0;
+  panY=0;
+
+  panMouseDown=false;
+
+  const reader=
+    document.getElementById(
+      "reader"
+    );
+
+  if(reader){
+
+    reader.classList.remove(
+      "pan-dragging"
+    );
+
+  }
 
   const img=
     document.getElementById(
@@ -1797,10 +2169,10 @@ function resetZoom(){
     );
 
     img.style.transform=
-      "scale(1)";
+      "translate(0px, 0px) scale(1)";
 
     img.style.transformOrigin=
-      "center";
+      "center center";
 
   }
 
@@ -1826,10 +2198,15 @@ function setupReaderTouch(){
     e=>{
 
       /*
-        Srednji gumb obravnava
-        ločena zoom funkcija.
+        Miške ne obravnavamo kot touch.
+        Levi gumb je namenjen panningu,
+        srednji pa zoomu.
       */
-      if(e.button===1) return;
+      if(e.pointerType==="mouse"){
+
+        return;
+
+      }
 
       startX=e.clientX;
 
@@ -1845,10 +2222,13 @@ function setupReaderTouch(){
     e=>{
 
       /*
-        Srednji gumb ne sme sprožiti
-        običajnega swipe/tap vedenja.
+        Miška nima swipe/tap obravnave.
       */
-      if(e.button===1) return;
+      if(e.pointerType==="mouse"){
+
+        return;
+
+      }
 
       const dx=
         e.clientX-startX;
@@ -1910,24 +2290,11 @@ function setupReaderTouch(){
 
       }else{
 
-        const rect=
-          img.getBoundingClientRect();
-
-        const x=
-          (
-            (e.clientX-rect.left) /
-            rect.width
-          )*100;
-
-        const y=
-          (
-            (e.clientY-rect.top) /
-            rect.height
-          )*100;
-
-        img.style.transformOrigin=
-          `${x}% ${y}%`;
-
+        /*
+          Zoom se začne na sredini,
+          nato lahko sliko z levim
+          gumbom poljubno premikaš.
+        */
         applyZoom(2.2);
 
       }
@@ -1976,6 +2343,11 @@ function closeReader(event){
   currentComic=null;
 
   middleMouseDown=false;
+
+  panMouseDown=false;
+
+  panX=0;
+  panY=0;
 
   renderHome();
 
