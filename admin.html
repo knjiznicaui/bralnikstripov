@@ -1,387 +1,320 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radovedni bralnik stripov — Admin</title>
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<title>GUTTER — Administrator</title>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+    }
 
-<style>
+    header {
+      padding: 20px;
+      background: #1b1b1b;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
 
-*{
-  box-sizing:border-box;
-}
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
 
-:root{
-  --bg:#0d0e14;
-  --panel:#171820;
-  --panel2:#1e2029;
-  --text:#f2efe6;
-  --muted:#9999a5;
-  --line:#343640;
-  --red:#e4383f;
-  --cyan:#29b6c4;
-}
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 25px;
+    }
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial,Helvetica,sans-serif;
-}
+    .card {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
 
-.container{
-  width:min(850px,calc(100% - 30px));
-  margin:auto;
-  padding:35px 0 70px;
-}
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
 
-.logo{
-  font-size:32px;
-  font-weight:900;
-  letter-spacing:1px;
-}
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 7px;
+      color: #bbb;
+      font-size: 14px;
+    }
 
-.subtitle{
-  color:var(--muted);
-  margin-top:6px;
-  margin-bottom:30px;
-}
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #444;
+      border-radius: 9px;
+      background: #101010;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:22px;
-  margin-bottom:20px;
-}
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #888;
+    }
 
-h1,h2,h3{
-  margin-top:0;
-}
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      font-family: monospace;
+    }
 
-label{
-  display:block;
-  color:var(--muted);
-  font-size:13px;
-  font-weight:bold;
-  margin-bottom:7px;
-}
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 16px;
+      margin-top: 15px;
+      background: #eee;
+      color: #111;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
 
-input,
-textarea,
-select{
-  width:100%;
-  background:var(--bg);
-  border:1px solid var(--line);
-  color:var(--text);
-  padding:13px;
-  border-radius:6px;
-  margin-bottom:17px;
-  font-size:15px;
-}
+    button:hover {
+      opacity: 0.85;
+    }
 
-textarea{
-  min-height:180px;
-  resize:vertical;
-  font-family:monospace;
-}
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-input:focus,
-textarea:focus,
-select:focus{
-  outline:none;
-  border-color:var(--cyan);
-}
+    .danger {
+      background: #b33;
+      color: white;
+    }
 
-button{
-  font:inherit;
-  cursor:pointer;
-}
+    .secondary {
+      background: #333;
+      color: white;
+    }
 
-.btn{
-  border:1px solid var(--line);
-  background:var(--panel2);
-  color:var(--text);
-  padding:11px 16px;
-  border-radius:6px;
-  font-weight:bold;
-}
+    .success {
+      background: #315f3a;
+      color: white;
+    }
 
-.btn:hover{
-  border-color:#777;
-}
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 9px;
+      background: #101010;
+      border: 1px solid #333;
+      display: none;
+    }
 
-.btn-primary{
-  background:var(--red);
-  border-color:var(--red);
-  color:white;
-}
+    .comic {
+      border: 1px solid #333;
+      background: #121212;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
 
-.btn-danger{
-  color:#ff646b;
-  border-color:#743238;
-  background:transparent;
-}
+    .comic-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
 
-.btn-cyan{
-  background:var(--cyan);
-  border-color:var(--cyan);
-  color:#061014;
-}
+    .comic-info {
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.6;
+    }
 
-.row{
-  display:flex;
-  gap:9px;
-  flex-wrap:wrap;
-}
+    .hidden {
+      display: none !important;
+    }
 
-.small{
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.55;
-}
+    .small {
+      color: #888;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
 
-.message{
-  padding:12px;
-  border-radius:6px;
-  margin-bottom:15px;
-}
+    a {
+      color: #ddd;
+      text-decoration: none;
+    }
 
-.success{
-  background:rgba(41,182,196,.12);
-  border:1px solid var(--cyan);
-  color:var(--cyan);
-}
+    a:hover {
+      text-decoration: underline;
+    }
 
-.error{
-  background:rgba(228,56,63,.12);
-  border:1px solid var(--red);
-  color:#ff6970;
-}
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
 
-.hidden{
-  display:none !important;
-}
+      header {
+        padding: 15px;
+      }
 
-.comic{
-  border-top:1px solid var(--line);
-  padding:16px 0;
-  display:flex;
-  justify-content:space-between;
-  gap:15px;
-  align-items:center;
-}
+      .button-row {
+        flex-direction: column;
+      }
 
-.comic:first-child{
-  border-top:0;
-}
-
-.comic-title{
-  font-weight:bold;
-  font-size:16px;
-}
-
-.comic-info{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:5px;
-}
-
-.top-buttons{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-
-.preview{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
-  gap:8px;
-  margin-top:10px;
-}
-
-.preview img{
-  width:100%;
-  aspect-ratio:3/4;
-  object-fit:cover;
-  background:#000;
-  border-radius:5px;
-}
-
-hr{
-  border:0;
-  border-top:1px solid var(--line);
-  margin:25px 0;
-}
-
-@media(max-width:600px){
-
-  .comic{
-    display:block;
-  }
-
-  .comic .row{
-    margin-top:12px;
-  }
-
-}
-
-</style>
+      button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
+<header>
+  <h1>Radovedni — Admin</h1>
+
+  <div>
+    <a href="index.html">← Nazaj na GUTTER</a>
+  </div>
+</header>
+
 <div class="container">
 
-  <div class="logo">
-    GUTTER ADMIN
-  </div>
+  <!-- GITHUB NASTAVITVE -->
+  <div class="card">
 
-  <div class="subtitle">
-    Upravljanje stripov
-  </div>
+    <h2>⚙️ GitHub nastavitve</h2>
 
+    <label for="owner">GitHub uporabnik</label>
+    <input
+      id="owner"
+      type="text"
+      placeholder="npr. mojuporabnik"
+    >
 
-  <!-- =====================================================
-       PRIJAVA
-       ===================================================== -->
+    <label for="repo">Ime repozitorija</label>
+    <input
+      id="repo"
+      type="text"
+      placeholder="npr. gutter"
+    >
 
-  <section id="loginBox" class="card">
+    <label for="token">GitHub token</label>
+    <input
+      id="token"
+      type="password"
+      placeholder="GitHub Personal Access Token"
+    >
 
-    <h2>Administrator</h2>
+    <div class="button-row">
 
-    <p class="small">
-      Za upravljanje knjižnice vnesi podatke svojega
-      GitHub repozitorija in GitHub token.
-    </p>
+      <button
+        type="button"
+        class="success"
+        onclick="saveSettings()"
+      >
+        💾 Shrani nastavitve
+      </button>
 
-    <div id="loginMessage"
-         class="message error hidden">
+      <button
+        type="button"
+        class="secondary"
+        onclick="clearSettings()"
+      >
+        🗑️ Izbriši shranjene nastavitve
+      </button>
+
     </div>
 
-    <label>
-      GitHub uporabnik
-    </label>
+    <div class="small">
+      Nastavitve se shranijo samo v ta brskalnik na tej napravi.
+      Token ni shranjen v tvojem GitHub repozitoriju.
+    </div>
 
-    <input
-      id="githubOwner"
-      type="text"
-      placeholder="npr. Janez123">
+  </div>
 
 
-    <label>
-      Ime repozitorija
-    </label>
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" class="hidden">
 
-    <input
-      id="githubRepo"
-      type="text"
-      placeholder="npr. gutter">
+    <div class="card">
 
+      <h2>📚 Upravljanje stripov</h2>
 
-    <label>
-      GitHub token
-    </label>
+      <div class="button-row">
 
-    <input
-      id="githubToken"
-      type="password"
-      placeholder="github_pat_...">
+        <button
+          type="button"
+          onclick="loadComics()"
+        >
+          🔄 Osveži stripe
+        </button>
 
+        <button
+          type="button"
+          class="secondary"
+          onclick="newComic()"
+        >
+          ➕ Nov strip
+        </button>
 
-    <button
-      class="btn btn-primary"
-      onclick="login()">
-
-      Vstop v administrator
-
-    </button>
-
-    <p class="small">
-      Token se ne shrani v datoteko in ga ne vpisuj
-      neposredno v JavaScript.
-    </p>
-
-  </section>
-
-
-
-  <!-- =====================================================
-       ADMIN PANEL
-       ===================================================== -->
-
-  <main id="adminBox" class="hidden">
-
-    <section class="card">
-
-      <div class="top-buttons">
-
-        <div>
-          <h2 style="margin-bottom:5px">
-            Nadzorna plošča
-          </h2>
-
-          <div class="small">
-            Dodajanje in urejanje stripov
-          </div>
-        </div>
-
-        <div class="row">
-
-          <a
-            href="index.html"
-            class="btn">
-            Stran
-          </a>
-
-          <button
-            class="btn btn-danger"
-            onclick="logout()">
-            Odjava
-          </button>
-
-        </div>
+        <button
+          type="button"
+          class="danger"
+          onclick="logout()"
+        >
+          🚪 Izbriši sejo
+        </button>
 
       </div>
 
-    </section>
+      <div id="status" class="status"></div>
+
+    </div>
 
 
+    <!-- OBRAZEC ZA STRIP -->
+    <div class="card">
 
-    <!-- ===================================================
-         FORMULAR
-         =================================================== -->
+      <h2>📝 Strip</h2>
 
-    <section class="card">
+      <label for="comicId">ID stripa</label>
+      <input
+        id="comicId"
+        type="text"
+        placeholder="npr. strip-001"
+      >
 
-      <h2 id="formTitle">
-        Dodaj nov strip
-      </h2>
-
-      <div
-        id="formMessage"
-        class="message hidden">
-      </div>
-
-
-      <label>
-        Naslov stripa
-      </label>
-
+      <label for="comicTitle">Naslov</label>
       <input
         id="comicTitle"
         type="text"
-        placeholder="Moj strip #1">
+        placeholder="Naslov stripa"
+      >
 
-
-      <label>
-        Format
-      </label>
-
+      <label for="comicFormat">Format</label>
       <select id="comicFormat">
 
         <option value="auto">
@@ -389,7 +322,7 @@ hr{
         </option>
 
         <option value="vertical">
-          Navpični 9:16
+          Vertikalni 9:16
         </option>
 
         <option value="portrait">
@@ -397,7 +330,7 @@ hr{
         </option>
 
         <option value="square">
-          Kvadrat 1:1
+          Kvadratni 1:1
         </option>
 
         <option value="landscape">
@@ -407,18 +340,7 @@ hr{
       </select>
 
 
-      <p class="small">
-
-        <strong>Samodejno</strong> je priporočeno.
-        Bralnik bo pri sliki preveril, ali je širša
-        ali višja, in temu prilagodil prikaz.
-
-      </p>
-
-
-      <label>
-        Smer branja
-      </label>
+      <label for="comicDirection">Smer branja</label>
 
       <select id="comicDirection">
 
@@ -433,950 +355,1385 @@ hr{
       </select>
 
 
-      <label>
+      <label for="comicTags">
         Oznake
       </label>
 
       <input
         id="comicTags"
         type="text"
-        placeholder="akcija, humor, fantazija">
+        placeholder="akcija, fantazija, humor"
+      >
 
 
-      <label>
-        Slike / paneli
+      <label for="comicPanels">
+        URL povezave do slik
       </label>
 
       <textarea
         id="comicPanels"
-        placeholder="https://...
-https://...
-https://..."></textarea>
+        placeholder="https://moja-stran.si/slika1.jpg
+https://moja-stran.si/slika2.jpg
+https://moja-stran.si/slika3.jpg"
+      ></textarea>
 
-      <p class="small">
-
-        Vsak URL slike mora biti v svoji vrstici.
-
-        <br><br>
-
-        Primer:
-
-        <br>
-
-        https://example.com/panel1.jpg
-
-        <br>
-
-        https://example.com/panel2.jpg
-
-        <br>
-
-        https://example.com/panel3.jpg
-
-      </p>
-
-
-      <div
-        id="preview"
-        class="preview">
+      <div class="small">
+        Vsako sliko vpiši v svojo vrstico.
       </div>
 
 
-      <div class="row">
+      <div class="button-row">
 
         <button
-          class="btn btn-primary"
-          onclick="saveComic()">
-
-          Shrani strip
-
+          type="button"
+          class="success"
+          onclick="saveComic()"
+        >
+          💾 Shrani strip
         </button>
 
-
         <button
-          id="cancelButton"
-          class="btn hidden"
-          onclick="cancelEdit()">
-
-          Prekliči
-
+          type="button"
+          class="secondary"
+          onclick="newComic()"
+        >
+          Počisti obrazec
         </button>
 
       </div>
 
-    </section>
+    </div>
 
 
+    <!-- SEZNAM STRIPOV -->
+    <div class="card">
 
-    <!-- ===================================================
-         STRIPI
-         =================================================== -->
+      <h2>📖 Objavljeni stripi</h2>
 
-    <section class="card">
-
-      <h2>
-        Objavljeni stripi
-      </h2>
-
-      <div
-        id="comicList">
-
-        <p class="small">
-          Nalagam...
-        </p>
-
+      <div id="comicList">
+        Nalagam...
       </div>
 
-    </section>
+    </div>
 
-  </main>
+  </div>
+
+
+  <!-- ZAČETNI ZASLON -->
+  <div id="loginInfo" class="card">
+
+    <h2>🔐 Administrator</h2>
+
+    <p>
+      Vpiši GitHub podatke zgoraj.
+    </p>
+
+    <button
+      type="button"
+      onclick="testConnection()"
+    >
+      🔌 Preveri povezavo
+    </button>
+
+    <div id="loginStatus" class="status"></div>
+
+  </div>
 
 </div>
 
 
-
 <script>
 
-"use strict";
-
-
-/* =========================================================
-   SPREMENLJIVKE
-   ========================================================= */
-
-let githubOwner="";
-let githubRepo="";
-let githubToken="";
-
-let comics=[];
-let githubSha="";
-
-let editingId=null;
-
-
-/* =========================================================
-   GITHUB URL
-   ========================================================= */
-
-function githubApiUrl(){
-
-  return (
-    "https://api.github.com/repos/" +
-    encodeURIComponent(githubOwner) +
-    "/" +
-    encodeURIComponent(githubRepo) +
-    "/contents/comics.json"
-  );
-
-}
-
-
-/* =========================================================
-   LOGIN
-   ========================================================= */
-
-async function login(){
-
-  const owner=
-    document.getElementById("githubOwner")
-      .value.trim();
-
-  const repo=
-    document.getElementById("githubRepo")
-      .value.trim();
-
-  const token=
-    document.getElementById("githubToken")
-      .value.trim();
-
-  const message=
-    document.getElementById("loginMessage");
-
-
-  message.classList.add("hidden");
-
-
-  if(!owner || !repo || !token){
-
-    message.textContent=
-      "Izpolni uporabnika, repozitorij in token.";
-
-    message.classList.remove("hidden");
-
-    return;
-
-  }
-
-
-  githubOwner=owner;
-  githubRepo=repo;
-  githubToken=token;
-
-
-  try{
-
-    await loadComicsFromGithub();
-
-
-    document
-      .getElementById("loginBox")
-      .classList.add("hidden");
-
-
-    document
-      .getElementById("adminBox")
-      .classList.remove("hidden");
-
-
-    renderComicList();
-
-
-  }catch(error){
-
-    console.error(error);
-
-    githubOwner="";
-    githubRepo="";
-    githubToken="";
-
-
-    message.textContent=
-      "Napaka pri povezavi z GitHubom. " +
-      "Preveri uporabnika, repozitorij in token.";
-
-    message.classList.remove("hidden");
-
-  }
-
-}
-
-
-/* =========================================================
-   GITHUB API REQUEST
-   ========================================================= */
-
-async function githubRequest(options={}){
-
-  const response=
-    await fetch(
-      githubApiUrl(),
-      {
-        method:options.method || "GET",
-
-        headers:{
-
-          "Accept":
-            "application/vnd.github+json",
-
-          "Authorization":
-            "Bearer " + githubToken,
-
-          "X-GitHub-Api-Version":
-            "2022-11-28",
-
-          ...(options.body
-            ? {
-                "Content-Type":
-                  "application/json"
-              }
-            : {})
-
-        },
-
-        body:
-          options.body
-          ? JSON.stringify(options.body)
-          : undefined
-
-      }
-    );
-
-
-  if(!response.ok){
-
-    const text=
-      await response.text();
-
-    throw new Error(
-      response.status +
-      " " +
-      text
-    );
-
-  }
-
-
-  return response.json();
-
-}
-
-
-/* =========================================================
-   PREBERI COMICS.JSON
-   ========================================================= */
-
-async function loadComicsFromGithub(){
-
-  const data=
-    await githubRequest();
-
-
-  githubSha=data.sha;
+  /*
+   * ============================================================
+   * GUTTER ADMIN
+   * ============================================================
+   *
+   * comics.json mora biti v glavnem direktoriju repozitorija.
+   *
+   * Primer:
+   *
+   * index.html
+   * admin.html
+   * comics.json
+   *
+   */
+
+
+  let comics = [];
+  let editingId = null;
 
 
   /*
-    GitHub vrne vsebino Base64.
-  */
+   * ============================================================
+   * SHRANJEVANJE NASTAVITEV
+   * ============================================================
+   */
 
-  const clean=
-    data.content.replace(/\n/g,"");
+  function saveSettings() {
 
+    const owner =
+      document.getElementById("owner").value.trim();
 
-  const binary=
-    atob(clean);
+    const repo =
+      document.getElementById("repo").value.trim();
 
-
-  const bytes=
-    Uint8Array.from(
-      binary,
-      char=>char.charCodeAt(0)
-    );
-
-
-  const text=
-    new TextDecoder("utf-8")
-      .decode(bytes);
+    const token =
+      document.getElementById("token").value.trim();
 
 
-  comics=
-    JSON.parse(text);
+    if (!owner || !repo || !token) {
 
+      alert(
+        "Izpolni GitHub uporabnika, repozitorij in token."
+      );
 
-  if(!Array.isArray(comics)){
-
-    comics=[];
-
-  }
-
-}
-
-
-/* =========================================================
-   SHRANI COMICS.JSON NA GITHUB
-   ========================================================= */
-
-async function saveComicsToGithub(){
-
-  const json=
-    JSON.stringify(
-      comics,
-      null,
-      2
-    );
-
-
-  const bytes=
-    new TextEncoder()
-      .encode(json);
-
-
-  let binary="";
-
-  bytes.forEach(
-    byte=>{
-      binary+=String.fromCharCode(byte);
+      return;
     }
-  );
 
 
-  const encoded=
-    btoa(binary);
-
-
-  const data=
-    await githubRequest({
-
-      method:"PUT",
-
-      body:{
-
-        message:
-          editingId
-          ? "Update comic"
-          : "Update comics",
-
-        content:encoded,
-
-        sha:githubSha,
-
-        branch:"main"
-
-      }
-
-    });
-
-
-  githubSha=
-    data.content.sha;
-
-}
-
-
-/* =========================================================
-   DODAJ / SHRANI STRIP
-   ========================================================= */
-
-async function saveComic(){
-
-  const title=
-    document
-      .getElementById("comicTitle")
-      .value.trim();
-
-
-  const format=
-    document
-      .getElementById("comicFormat")
-      .value;
-
-
-  const direction=
-    document
-      .getElementById("comicDirection")
-      .value;
-
-
-  const tags=
-    document
-      .getElementById("comicTags")
-      .value
-      .split(",")
-      .map(x=>x.trim())
-      .filter(Boolean);
-
-
-  const panels=
-    document
-      .getElementById("comicPanels")
-      .value
-      .split(/\r?\n/)
-      .map(x=>x.trim())
-      .filter(Boolean);
-
-
-  if(!title){
-
-    showFormMessage(
-      "Vpiši naslov stripa.",
-      true
+    localStorage.setItem(
+      "gutter_admin_owner",
+      owner
     );
 
-    return;
+    localStorage.setItem(
+      "gutter_admin_repo",
+      repo
+    );
 
+    localStorage.setItem(
+      "gutter_admin_token",
+      token
+    );
+
+
+    alert(
+      "✅ Nastavitve so shranjene."
+    );
+
+
+    showAdminPanel();
   }
 
 
-  if(!panels.length){
+  /*
+   * Naloži shranjene nastavitve
+   */
 
-    showFormMessage(
-      "Dodaj vsaj eno sliko.",
-      true
-    );
+  function loadSettings() {
 
-    return;
+    const owner =
+      localStorage.getItem(
+        "gutter_admin_owner"
+      );
 
-  }
+    const repo =
+      localStorage.getItem(
+        "gutter_admin_repo"
+      );
 
-
-  const oldComic=
-    comics.find(
-      comic=>comic.id===editingId
-    );
-
-
-  const comic={
-
-    id:
-      editingId ||
-      "comic_" +
-      Date.now().toString(36),
-
-    title:title,
-
-    format:format,
-
-    direction:direction,
-
-    tags:tags,
-
-    panels:panels,
-
-    createdAt:
-      oldComic?.createdAt ||
-      Date.now()
-
-  };
-
-
-  if(editingId){
-
-    const index=
-      comics.findIndex(
-        comic=>comic.id===editingId
+    const token =
+      localStorage.getItem(
+        "gutter_admin_token"
       );
 
 
-    if(index!==-1){
+    if (owner) {
 
-      comics[index]=comic;
+      document.getElementById(
+        "owner"
+      ).value = owner;
 
     }
 
-  }else{
 
-    comics.unshift(comic);
+    if (repo) {
+
+      document.getElementById(
+        "repo"
+      ).value = repo;
+
+    }
+
+
+    if (token) {
+
+      document.getElementById(
+        "token"
+      ).value = token;
+
+      showAdminPanel();
+
+    }
+
+  }
+
+
+  /*
+   * Izbriši shranjene nastavitve
+   */
+
+  function clearSettings() {
+
+    const answer =
+      confirm(
+        "Ali res želiš izbrisati shranjene GitHub nastavitve?"
+      );
+
+
+    if (!answer) {
+      return;
+    }
+
+
+    localStorage.removeItem(
+      "gutter_admin_owner"
+    );
+
+    localStorage.removeItem(
+      "gutter_admin_repo"
+    );
+
+    localStorage.removeItem(
+      "gutter_admin_token"
+    );
+
+
+    document.getElementById(
+      "owner"
+    ).value = "";
+
+    document.getElementById(
+      "repo"
+    ).value = "";
+
+    document.getElementById(
+      "token"
+    ).value = "";
+
+
+    document.getElementById(
+      "adminPanel"
+    ).classList.add("hidden");
+
+
+    alert(
+      "🗑️ Shranjene nastavitve so izbrisane."
+    );
 
   }
 
 
-  try{
+  /*
+   * ============================================================
+   * GITHUB PODATKI
+   * ============================================================
+   */
 
-    await saveComicsToGithub();
+  function getGitHubSettings() {
 
+    return {
 
-    showFormMessage(
-      editingId
-      ? "Strip je bil posodobljen."
-      : "Strip je bil dodan."
-    );
+      owner:
+        document.getElementById(
+          "owner"
+        ).value.trim(),
 
+      repo:
+        document.getElementById(
+          "repo"
+        ).value.trim(),
 
-    editingId=null;
+      token:
+        document.getElementById(
+          "token"
+        ).value.trim()
 
-    clearForm();
-
-    renderComicList();
-
-
-  }catch(error){
-
-    console.error(error);
-
-
-    showFormMessage(
-      "Shranjevanje ni uspelo: " +
-      error.message,
-      true
-    );
+    };
 
   }
 
-}
 
+  /*
+   * ============================================================
+   * STATUS
+   * ============================================================
+   */
 
-/* =========================================================
-   UREDI
-   ========================================================= */
+  function showStatus(message, error = false) {
 
-function editComic(id){
+    const status =
+      document.getElementById(
+        "status"
+      );
 
-  const comic=
-    comics.find(
-      comic=>comic.id===id
-    );
+    status.style.display = "block";
 
+    status.textContent = message;
 
-  if(!comic) return;
+    if (error) {
 
+      status.style.borderColor = "#833";
 
-  editingId=id;
+    } else {
 
+      status.style.borderColor = "#363";
 
-  document
-    .getElementById("formTitle")
-    .textContent="Uredi strip";
-
-
-  document
-    .getElementById("comicTitle")
-    .value=comic.title || "";
-
-
-  document
-    .getElementById("comicFormat")
-    .value=comic.format || "auto";
-
-
-  document
-    .getElementById("comicDirection")
-    .value=comic.direction || "ltr";
-
-
-  document
-    .getElementById("comicTags")
-    .value=(comic.tags || []).join(", ");
-
-
-  document
-    .getElementById("comicPanels")
-    .value=(comic.panels || []).join("\n");
-
-
-  document
-    .getElementById("cancelButton")
-    .classList.remove("hidden");
-
-
-  updatePreview();
-
-
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
-
-}
-
-
-/* =========================================================
-   PREKLIČI UREJANJE
-   ========================================================= */
-
-function cancelEdit(){
-
-  editingId=null;
-
-  clearForm();
-
-}
-
-
-/* =========================================================
-   POČISTI FORMULAR
-   ========================================================= */
-
-function clearForm(){
-
-  document
-    .getElementById("formTitle")
-    .textContent=
-      "Dodaj nov strip";
-
-
-  document
-    .getElementById("comicTitle")
-    .value="";
-
-
-  document
-    .getElementById("comicFormat")
-    .value="auto";
-
-
-  document
-    .getElementById("comicDirection")
-    .value="ltr";
-
-
-  document
-    .getElementById("comicTags")
-    .value="";
-
-
-  document
-    .getElementById("comicPanels")
-    .value="";
-
-
-  document
-    .getElementById("cancelButton")
-    .classList.add("hidden");
-
-
-  document
-    .getElementById("preview")
-    .innerHTML="";
-
-}
-
-
-/* =========================================================
-   IZBRIŠI STRIP
-   ========================================================= */
-
-async function deleteComic(id){
-
-  const comic=
-    comics.find(
-      comic=>comic.id===id
-    );
-
-
-  if(!comic) return;
-
-
-  const confirmed=
-    confirm(
-      'Ali res želiš izbrisati "' +
-      comic.title +
-      '"?'
-    );
-
-
-  if(!confirmed) return;
-
-
-  const oldComics=
-    [...comics];
-
-
-  comics=
-    comics.filter(
-      comic=>comic.id!==id
-    );
-
-
-  try{
-
-    await saveComicsToGithub();
-
-    renderComicList();
-
-
-    showFormMessage(
-      "Strip je bil izbrisan."
-    );
-
-
-  }catch(error){
-
-    comics=oldComics;
-
-
-    showFormMessage(
-      "Brisanje ni uspelo: " +
-      error.message,
-      true
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   IZPIS STRIPOV
-   ========================================================= */
-
-function renderComicList(){
-
-  const list=
-    document.getElementById("comicList");
-
-
-  if(!comics.length){
-
-    list.innerHTML=`
-      <p class="small">
-        Trenutno ni nobenega stripa.
-      </p>
-    `;
-
-    return;
+    }
 
   }
 
 
-  list.innerHTML=
-    comics.map(comic=>`
+  function showLoginStatus(message) {
 
-      <div class="comic">
+    const status =
+      document.getElementById(
+        "loginStatus"
+      );
 
-        <div>
+    status.style.display = "block";
+
+    status.textContent = message;
+
+  }
+
+
+  /*
+   * ============================================================
+   * PRIKAŽI ADMIN PANEL
+   * ============================================================
+   */
+
+  function showAdminPanel() {
+
+    const settings =
+      getGitHubSettings();
+
+
+    if (
+      settings.owner &&
+      settings.repo &&
+      settings.token
+    ) {
+
+      document
+        .getElementById("adminPanel")
+        .classList.remove("hidden");
+
+      document
+        .getElementById("loginInfo")
+        .classList.add("hidden");
+
+      loadComics();
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * GITHUB API
+   * ============================================================
+   */
+
+  async function githubRequest(
+    method,
+    url,
+    body = null
+  ) {
+
+    const settings =
+      getGitHubSettings();
+
+
+    const headers = {
+
+      "Accept":
+        "application/vnd.github+json",
+
+      "Authorization":
+        "Bearer " + settings.token,
+
+      "X-GitHub-Api-Version":
+        "2022-11-28"
+
+    };
+
+
+    const options = {
+
+      method: method,
+
+      headers: headers
+
+    };
+
+
+    if (body !== null) {
+
+      options.headers[
+        "Content-Type"
+      ] = "application/json";
+
+      options.body =
+        JSON.stringify(body);
+
+    }
+
+
+    const response =
+      await fetch(
+        url,
+        options
+      );
+
+
+    if (!response.ok) {
+
+      let message =
+        "GitHub napaka.";
+
+      try {
+
+        const data =
+          await response.json();
+
+        if (data.message) {
+          message = data.message;
+        }
+
+      } catch (e) {}
+
+
+      throw new Error(
+        message +
+        " (" +
+        response.status +
+        ")"
+      );
+
+    }
+
+
+    return response.json();
+
+  }
+
+
+  /*
+   * ============================================================
+   * PREVERI POVEZAVO
+   * ============================================================
+   */
+
+  async function testConnection() {
+
+    const settings =
+      getGitHubSettings();
+
+
+    if (
+      !settings.owner ||
+      !settings.repo ||
+      !settings.token
+    ) {
+
+      showLoginStatus(
+        "❌ Manjkajo podatki."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      showLoginStatus(
+        "⏳ Preverjam povezavo..."
+      );
+
+
+      const url =
+        "https://api.github.com/repos/" +
+        encodeURIComponent(settings.owner) +
+        "/" +
+        encodeURIComponent(settings.repo);
+
+
+      const data =
+        await githubRequest(
+          "GET",
+          url
+        );
+
+
+      showLoginStatus(
+        "✅ Povezava deluje. Repozitorij: " +
+        data.full_name
+      );
+
+
+      showAdminPanel();
+
+    } catch (error) {
+
+      showLoginStatus(
+        "❌ Napaka: " +
+        error.message
+      );
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * PREBERI comics.json
+   * ============================================================
+   */
+
+  async function getComicsFile() {
+
+    const settings =
+      getGitHubSettings();
+
+
+    const url =
+      "https://api.github.com/repos/" +
+      encodeURIComponent(settings.owner) +
+      "/" +
+      encodeURIComponent(settings.repo) +
+      "/contents/comics.json";
+
+
+    const data =
+      await githubRequest(
+        "GET",
+        url
+      );
+
+
+    const binary =
+      atob(
+        data.content.replace(/\n/g, "")
+      );
+
+
+    const bytes =
+      new Uint8Array(
+        binary.length
+      );
+
+
+    for (
+      let i = 0;
+      i < binary.length;
+      i++
+    ) {
+
+      bytes[i] =
+        binary.charCodeAt(i);
+
+    }
+
+
+    const text =
+      new TextDecoder(
+        "utf-8"
+      ).decode(bytes);
+
+
+    return {
+
+      sha: data.sha,
+
+      comics:
+        JSON.parse(text || "[]")
+
+    };
+
+  }
+
+
+  /*
+   * ============================================================
+   * SHRANI comics.json NA GITHUB
+   * ============================================================
+   */
+
+  async function saveComicsToGithub(
+    comicsData,
+    sha
+  ) {
+
+    const settings =
+      getGitHubSettings();
+
+
+    const json =
+      JSON.stringify(
+        comicsData,
+        null,
+        2
+      );
+
+
+    const bytes =
+      new TextEncoder().encode(
+        json
+      );
+
+
+    let binary = "";
+
+
+    bytes.forEach(
+      byte => {
+        binary += String.fromCharCode(
+          byte
+        );
+      }
+    );
+
+
+    const base64 =
+      btoa(binary);
+
+
+    const url =
+      "https://api.github.com/repos/" +
+      encodeURIComponent(settings.owner) +
+      "/" +
+      encodeURIComponent(settings.repo) +
+      "/contents/comics.json";
+
+
+    const body = {
+
+      message:
+        "Update comics.json",
+
+      content:
+        base64,
+
+      sha:
+        sha,
+
+      branch:
+        "main"
+
+    };
+
+
+    return githubRequest(
+      "PUT",
+      url,
+      body
+    );
+
+  }
+
+
+  /*
+   * ============================================================
+   * NALOŽI STRIPE
+   * ============================================================
+   */
+
+  async function loadComics() {
+
+    try {
+
+      showStatus(
+        "⏳ Nalagam stripe..."
+      );
+
+
+      const data =
+        await getComicsFile();
+
+
+      comics =
+        Array.isArray(data.comics)
+          ? data.comics
+          : [];
+
+
+      window.comicsSha =
+        data.sha;
+
+
+      renderComics();
+
+
+      showStatus(
+        "✅ Stripe sem uspešno naložil."
+      );
+
+
+    } catch (error) {
+
+      showStatus(
+        "❌ Napaka pri nalaganju: " +
+        error.message,
+        true
+      );
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * PRIKAŽI STRIPE
+   * ============================================================
+   */
+
+  function renderComics() {
+
+    const container =
+      document.getElementById(
+        "comicList"
+      );
+
+
+    if (!comics.length) {
+
+      container.innerHTML =
+        "<p>Trenutno ni nobenega stripa.</p>";
+
+      return;
+
+    }
+
+
+    container.innerHTML = "";
+
+
+    comics.forEach(
+      comic => {
+
+        const div =
+          document.createElement(
+            "div"
+          );
+
+
+        div.className =
+          "comic";
+
+
+        const tags =
+          Array.isArray(comic.tags)
+            ? comic.tags.join(", ")
+            : "";
+
+
+        const panels =
+          Array.isArray(comic.panels)
+            ? comic.panels.length
+            : 0;
+
+
+        div.innerHTML = `
 
           <div class="comic-title">
-            ${escapeHtml(comic.title)}
+            ${escapeHtml(
+              comic.title || "Brez naslova"
+            )}
           </div>
 
           <div class="comic-info">
 
+            ID:
+            ${escapeHtml(
+              comic.id || ""
+            )}
+            <br>
+
             Format:
-            ${escapeHtml(comic.format || "auto")}
+            ${escapeHtml(
+              comic.format || "auto"
+            )}
+            <br>
 
-            ·
+            Smer:
+            ${escapeHtml(
+              comic.direction || "ltr"
+            )}
+            <br>
 
-            ${comic.panels?.length || 0}
-            panelov
+            Oznake:
+            ${escapeHtml(
+              tags
+            )}
+            <br>
 
-            ${
-              comic.tags?.length
-              ? `
-                ·
-                ${comic.tags
-                  .map(escapeHtml)
-                  .join(", ")}
-              `
-              : ""
-            }
+            Število slik:
+            ${panels}
 
           </div>
 
-        </div>
+          <div class="button-row">
+
+            <button
+              type="button"
+              onclick="editComic('${escapeJs(
+                comic.id
+              )}')"
+            >
+              ✏️ Uredi
+            </button>
+
+            <button
+              type="button"
+              class="danger"
+              onclick="deleteComic('${escapeJs(
+                comic.id
+              )}')"
+            >
+              🗑️ Izbriši
+            </button>
+
+          </div>
+
+        `;
 
 
-        <div class="row">
+        container.appendChild(
+          div
+        );
 
-          <button
-            class="btn"
-            onclick="editComic('${comic.id}')">
-
-            Uredi
-
-          </button>
-
-
-          <button
-            class="btn btn-danger"
-            onclick="deleteComic('${comic.id}')">
-
-            Izbriši
-
-          </button>
-
-        </div>
-
-      </div>
-
-    `).join("");
-
-}
-
-
-/* =========================================================
-   PREVIEW SLIK
-   ========================================================= */
-
-function updatePreview(){
-
-  const text=
-    document
-      .getElementById("comicPanels")
-      .value;
-
-
-  const urls=
-    text
-      .split(/\r?\n/)
-      .map(x=>x.trim())
-      .filter(Boolean);
-
-
-  const preview=
-    document.getElementById("preview");
-
-
-  preview.innerHTML=
-    urls.map(url=>`
-
-      <img
-        src="${escapeHtml(url)}"
-        alt="Panel"
-        onerror="this.style.opacity='.25'">
-
-    `).join("");
-
-}
-
-
-document
-  .getElementById("comicPanels")
-  .addEventListener(
-    "input",
-    updatePreview
-  );
-
-
-/* =========================================================
-   SPOROČILO
-   ========================================================= */
-
-function showFormMessage(
-  text,
-  error=false
-){
-
-  const box=
-    document.getElementById("formMessage");
-
-
-  box.textContent=text;
-
-
-  box.className=
-    "message " +
-    (error ? "error" : "success");
-
-}
-
-
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
-
-function escapeHtml(value){
-
-  return String(value ?? "")
-    .replace(
-      /[&<>"']/g,
-      char=>({
-
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
-
-      })[char]
+      }
     );
 
-}
+  }
 
 
-/* =========================================================
-   ODJAVA
-   ========================================================= */
+  /*
+   * ============================================================
+   * NOV STRIP
+   * ============================================================
+   */
 
-function logout(){
+  function newComic() {
 
-  githubOwner="";
-  githubRepo="";
-  githubToken="";
-
-  comics=[];
-  githubSha="";
-  editingId=null;
+    editingId = null;
 
 
-  document
-    .getElementById("adminBox")
-    .classList.add("hidden");
+    document.getElementById(
+      "comicId"
+    ).value = "";
 
 
-  document
-    .getElementById("loginBox")
-    .classList.remove("hidden");
+    document.getElementById(
+      "comicTitle"
+    ).value = "";
 
 
-  document
-    .getElementById("githubToken")
-    .value="";
-
-}
+    document.getElementById(
+      "comicFormat"
+    ).value = "auto";
 
 
-/* =========================================================
-   START
-   ========================================================= */
+    document.getElementById(
+      "comicDirection"
+    ).value = "ltr";
+
+
+    document.getElementById(
+      "comicTags"
+    ).value = "";
+
+
+    document.getElementById(
+      "comicPanels"
+    ).value = "";
+
+
+    document.getElementById(
+      "comicId"
+    ).focus();
+
+  }
+
+
+  /*
+   * ============================================================
+   * UREDI STRIP
+   * ============================================================
+   */
+
+  function editComic(id) {
+
+    const comic =
+      comics.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!comic) {
+
+      alert(
+        "Strip ni bil najden."
+      );
+
+      return;
+
+    }
+
+
+    editingId =
+      comic.id;
+
+
+    document.getElementById(
+      "comicId"
+    ).value =
+      comic.id || "";
+
+
+    document.getElementById(
+      "comicTitle"
+    ).value =
+      comic.title || "";
+
+
+    document.getElementById(
+      "comicFormat"
+    ).value =
+      comic.format || "auto";
+
+
+    document.getElementById(
+      "comicDirection"
+    ).value =
+      comic.direction || "ltr";
+
+
+    document.getElementById(
+      "comicTags"
+    ).value =
+      Array.isArray(comic.tags)
+        ? comic.tags.join(", ")
+        : "";
+
+
+    document.getElementById(
+      "comicPanels"
+    ).value =
+      Array.isArray(comic.panels)
+        ? comic.panels.join("\n")
+        : "";
+
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /*
+   * ============================================================
+   * SHRANI STRIP
+   * ============================================================
+   */
+
+  async function saveComic() {
+
+    const id =
+      document.getElementById(
+        "comicId"
+      ).value.trim();
+
+
+    const title =
+      document.getElementById(
+        "comicTitle"
+      ).value.trim();
+
+
+    const format =
+      document.getElementById(
+        "comicFormat"
+      ).value;
+
+
+    const direction =
+      document.getElementById(
+        "comicDirection"
+      ).value;
+
+
+    const tagsText =
+      document.getElementById(
+        "comicTags"
+      ).value.trim();
+
+
+    const panelsText =
+      document.getElementById(
+        "comicPanels"
+      ).value.trim();
+
+
+    if (!id) {
+
+      alert(
+        "Vpiši ID stripa."
+      );
+
+      return;
+
+    }
+
+
+    if (!title) {
+
+      alert(
+        "Vpiši naslov stripa."
+      );
+
+      return;
+
+    }
+
+
+    if (!panelsText) {
+
+      alert(
+        "Vpiši vsaj eno povezavo do slike."
+      );
+
+      return;
+
+    }
+
+
+    const tags =
+      tagsText
+        ? tagsText
+            .split(",")
+            .map(
+              tag =>
+                tag.trim()
+            )
+            .filter(Boolean)
+        : [];
+
+
+    const panels =
+      panelsText
+        .split("\n")
+        .map(
+          url =>
+            url.trim()
+        )
+        .filter(Boolean);
+
+
+    const comic = {
+
+      id: id,
+
+      title: title,
+
+      format: format,
+
+      direction: direction,
+
+      tags: tags,
+
+      panels: panels
+
+    };
+
+
+    try {
+
+      showStatus(
+        "⏳ Shranjujem strip..."
+      );
+
+
+      const data =
+        await getComicsFile();
+
+
+      comics =
+        Array.isArray(data.comics)
+          ? data.comics
+          : [];
+
+
+      if (editingId !== null) {
+
+        const index =
+          comics.findIndex(
+            item =>
+              String(item.id) ===
+              String(editingId)
+          );
+
+
+        if (index !== -1) {
+
+          comics[index] =
+            comic;
+
+        } else {
+
+          comics.push(
+            comic
+          );
+
+        }
+
+      } else {
+
+        const exists =
+          comics.some(
+            item =>
+              String(item.id) ===
+              String(id)
+          );
+
+
+        if (exists) {
+
+          alert(
+            "Ta ID že obstaja. Uporabi drug ID ali uredi obstoječi strip."
+          );
+
+          return;
+
+        }
+
+
+        comics.push(
+          comic
+        );
+
+      }
+
+
+      await saveComicsToGithub(
+        comics,
+        data.sha
+      );
+
+
+      editingId = null;
+
+
+      await loadComics();
+
+
+      newComic();
+
+
+      showStatus(
+        "✅ Strip je shranjen na GitHub."
+      );
+
+
+    } catch (error) {
+
+      showStatus(
+        "❌ Napaka pri shranjevanju: " +
+        error.message,
+        true
+      );
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * IZBRIŠI STRIP
+   * ============================================================
+   */
+
+  async function deleteComic(id) {
+
+    const comic =
+      comics.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!comic) {
+      return;
+    }
+
+
+    const answer =
+      confirm(
+        'Ali res želiš izbrisati strip "' +
+        comic.title +
+        '"?'
+      );
+
+
+    if (!answer) {
+      return;
+    }
+
+
+    try {
+
+      showStatus(
+        "⏳ Brišem strip..."
+      );
+
+
+      const data =
+        await getComicsFile();
+
+
+      comics =
+        data.comics.filter(
+          item =>
+            String(item.id) !==
+            String(id)
+        );
+
+
+      await saveComicsToGithub(
+        comics,
+        data.sha
+      );
+
+
+      await loadComics();
+
+
+      showStatus(
+        "✅ Strip je izbrisan."
+      );
+
+
+    } catch (error) {
+
+      showStatus(
+        "❌ Napaka pri brisanju: " +
+        error.message,
+        true
+      );
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * ODJAVA
+   * ============================================================
+   */
+
+  function logout() {
+
+    document
+      .getElementById(
+        "adminPanel"
+      )
+      .classList.add(
+        "hidden"
+      );
+
+
+    document
+      .getElementById(
+        "loginInfo"
+      )
+      .classList.remove(
+        "hidden"
+      );
+
+
+    alert(
+      "Seja je zaprta. Shranjene nastavitve ostanejo."
+    );
+
+  }
+
+
+  /*
+   * ============================================================
+   * ZAŠČITA HTML IZPISA
+   * ============================================================
+   */
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
+
+
+  function escapeJs(value) {
+
+    return String(value)
+      .replace(
+        /\\/g,
+        "\\\\"
+      )
+      .replace(
+        /'/g,
+        "\\'"
+      );
+
+  }
+
+
+  /*
+   * ============================================================
+   * ZAGON
+   * ============================================================
+   */
+
+  window.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+      loadSettings();
+
+    }
+  );
 
 </script>
 
