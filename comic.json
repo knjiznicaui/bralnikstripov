@@ -1,1 +1,17 @@
-
+[
+  {
+    "id": "strip-001",
+    "title": "Moj prvi strip",
+    "format": "portrait",
+    "direction": "ltr",
+    "tags": [
+      "akcija",
+      "fantazija"
+    ],
+    "panels": [
+      "https://example.com/slika1.jpg",
+      "https://example.com/slika2.jpg",
+      "https://example.com/slika3.jpg"
+    ]
+  }
+]
