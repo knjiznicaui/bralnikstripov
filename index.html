@@ -328,15 +328,18 @@ button{
   transform:scale(2.2);
 }
 
+/* ZGORNJI MENI */
+
 .reader-top{
   position:absolute;
   top:0;
   left:0;
   right:0;
-  z-index:5;
+  z-index:20;
   padding:calc(12px + var(--safeT)) 15px 18px;
   background:linear-gradient(#000b,transparent);
   transition:.2s;
+  pointer-events:auto;
 }
 
 .reader-top.hidden-ui{
@@ -351,10 +354,21 @@ button{
 }
 
 .reader-row button{
-  background:none;
+  background:rgba(0,0,0,.35);
   border:0;
   color:white;
-  padding:7px;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  pointer-events:auto;
+  position:relative;
+  z-index:30;
+}
+
+.reader-row button:hover{
+  background:rgba(255,255,255,.15);
 }
 
 .reader-title{
@@ -496,7 +510,6 @@ let currentDirection="ltr";
 let readerVisible=true;
 let zoomed=false;
 
-/* Za kolešček miške */
 let wheelLocked=false;
 
 const app=document.getElementById("app");
@@ -978,8 +991,13 @@ function renderReader(){
 
         <div class="reader-row">
 
-          <button onclick="closeReader()">
+          <button
+            type="button"
+            onclick="closeReader(event)"
+            aria-label="Zapri bralnik">
+
             ${icon("close",22)}
+
           </button>
 
           <div class="reader-title">
@@ -988,15 +1006,19 @@ function renderReader(){
 
           <div class="counter"
                id="counter">
+
             ${currentIndex+1} / ${comic.panels.length}
+
           </div>
 
         </div>
 
         <div class="progress">
+
           <i id="reader-progress"
              style="width:${((currentIndex+1)/comic.panels.length)*100}%">
           </i>
+
         </div>
 
       </div>
@@ -1184,16 +1206,6 @@ function handleSwipe(dx){
 
 /* ================= MOUSE WHEEL ================= */
 
-/*
-  LTR:
-    kolešček dol = naslednja slika
-    kolešček gor = prejšnja slika
-
-  RTL:
-    kolešček dol = prejšnja slika
-    kolešček gor = naslednja slika
-*/
-
 function setupReaderWheel(){
 
   const stage=
@@ -1380,6 +1392,27 @@ function toggleReaderUI(){
       "hidden-ui",
       !readerVisible
     );
+
+}
+
+/* ================= CLOSE READER ================= */
+
+function closeReader(event){
+
+  if(event){
+
+    event.preventDefault();
+    event.stopPropagation();
+
+  }
+
+  unlockOrientation();
+
+  document.body.classList.remove("reader-active");
+
+  currentComic=null;
+
+  renderHome();
 
 }
 
