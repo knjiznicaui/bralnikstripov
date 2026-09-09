@@ -301,15 +301,26 @@ button{
   background:#000;
 }
 
+/*
+  Bralni prostor se začne pod zgornjim menijem,
+  zato slika ne leži pod rdečo progress črto.
+*/
 .reader-stage{
   position:absolute;
-  inset:0;
+  top:72px;
+  left:0;
+  right:0;
+  bottom:0;
+
   display:flex;
   justify-content:center;
   align-items:center;
+
   overflow:hidden;
   touch-action:none;
   user-select:none;
+
+  z-index:1;
 }
 
 .reader-frame{
@@ -319,6 +330,9 @@ button{
   justify-content:center;
   overflow:hidden;
   background:#000;
+
+  max-width:100%;
+  max-height:100%;
 }
 
 .reader-img{
@@ -328,8 +342,12 @@ button{
   max-width:100%;
   max-height:100%;
   object-fit:contain;
+
   transform-origin:center;
-  transition:transform .15s ease;
+  transition:transform .08s linear;
+
+  user-select:none;
+  -webkit-user-drag:none;
 }
 
 .reader-img.zoomed{
@@ -343,10 +361,15 @@ button{
   top:0;
   left:0;
   right:0;
+
   z-index:20;
+
   padding:calc(12px + var(--safeT)) 15px 18px;
+
   background:linear-gradient(#000b,transparent);
+
   transition:.2s;
+
   pointer-events:auto;
 }
 
@@ -365,12 +388,17 @@ button{
   background:rgba(0,0,0,.35);
   border:0;
   color:white;
+
   padding:10px;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
   border-radius:50%;
+
   pointer-events:auto;
+
   position:relative;
   z-index:30;
 }
@@ -382,8 +410,10 @@ button{
 .reader-title{
   flex:1;
   min-width:0;
+
   font-size:14px;
   font-weight:700;
+
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -409,12 +439,15 @@ button{
 .dots{
   position:absolute;
   z-index:5;
+
   bottom:20px;
   left:0;
   right:0;
+
   display:flex;
   justify-content:center;
   gap:5px;
+
   pointer-events:none;
 }
 
@@ -432,37 +465,56 @@ button{
 
 @media(orientation:landscape){
   .reader-frame.landscape{
-    width:100vw!important;
-    height:100vh!important;
+    width:100%!important;
+    height:100%!important;
   }
 }
 
 @media(orientation:portrait){
   .reader-frame.portrait{
-    width:100vw!important;
-    height:100vh!important;
+    width:100%!important;
+    height:100%!important;
   }
 }
 
 .reader-frame.landscape .reader-img{
-  max-width:100vw;
-  max-height:100vh;
+  max-width:100%;
+  max-height:100%;
   width:auto;
   height:auto;
 }
 
 .reader-frame.portrait .reader-img{
-  max-width:100vw;
-  max-height:100vh;
+  max-width:100%;
+  max-height:100%;
   width:auto;
   height:auto;
 }
 
+/*
+  Med srednjim klikom miške pokažemo, da je uporabnik
+  v načinu za zoom.
+*/
+#reader.zoom-dragging{
+  cursor:ew-resize;
+}
+
+#reader.zoom-dragging .reader-img{
+  cursor:ew-resize;
+}
+
 @media(max-width:600px){
+
   .hero{
     padding-top:30px;
   }
+
+  .reader-stage{
+    top:66px;
+  }
+
 }
+
 </style>
 </head>
 
@@ -518,11 +570,25 @@ let currentDirection="ltr";
 let readerVisible=true;
 let zoomed=false;
 
+/* ================= MOUSE WHEEL ================= */
+
 let wheelLocked=false;
+
+/* ================= MIDDLE MOUSE ZOOM ================= */
+
+let middleMouseDown=false;
+let middleStartX=0;
+let middleStartZoom=1;
+
+const MIN_ZOOM=1;
+const MAX_ZOOM=4;
 
 const app=document.getElementById("app");
 
+/* ================= HELPERS ================= */
+
 function esc(value){
+
   return String(value ?? "").replace(/[&<>"']/g,c=>({
     "&":"&amp;",
     "<":"&lt;",
@@ -530,23 +596,41 @@ function esc(value){
     '"':"&quot;",
     "'":"&#39;"
   }[c]||c));
+
 }
 
 function icon(name,size=20){
 
   const icons={
+
     back:`<path d="M15 18l-6-6 6-6"/>`,
+
     close:`<path d="M18 6L6 18M6 6l12 12"/>`,
+
     book:`<path d="M4 5a2 2 0 012-2h5v18H6a2 2 0 01-2-2z"/><path d="M20 5a2 2 0 00-2-2h-5v18h5a2 2 0 002-2z"/>`,
-    settings:`<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.2 1.6l2 1.5-2 3.4-2.3-1a7 7 0 01-2.6 1.5L13.5 21h-3l-.4-2a7 7 0 01-2.6-1.5l-2.3 1-2.3 1-2-3.4 2-1.5A7 7 0 015 12a7 7 0 01.2-1.6l-2-1.5 2-3.4 2.3 1a7 7 0 012.6-1.5l.4-2h3l.4 2a7 7 0 012.6 1.5l2.3-1 2 3.4-2 1.5A7 7 0 0119 12z"/>`,
+
+    settings:`<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.2 1.6l2 1.5-2 3.4-2.3-1a7 7 0 01-2.6 1.5L13.5 21h-3l-.4-2a7 7 0 01-2.6-1.5l-2.3 1-2.3-1 2-3.4-2-1.5A7 7 0 015 12a7 7 0 01.2-1.6l-2-1.5 2-3.4 2.3 1a7 7 0 012.6-1.5l.4-2h3l.4 2a7 7 0 012.6 1.5l2.3-1 2 3.4-2 1.5A7 7 0 0119 12z"/>`,
+
     arrow:`<path d="M5 12h14M13 6l6 6-6 6"/>`
+
   };
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" stroke-width="2"
-    stroke-linecap="round" stroke-linejoin="round">
-    ${icons[name]||""}
-  </svg>`;
+  return `
+    <svg
+      width="${size}"
+      height="${size}"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round">
+
+      ${icons[name]||""}
+
+    </svg>
+  `;
+
 }
 
 /* ================= DATA ================= */
@@ -555,12 +639,19 @@ async function loadComics(){
 
   try{
 
-    const response=await fetch(COMICS_URL+"?v="+Date.now(),{
-      cache:"no-store"
-    });
+    const response=await fetch(
+      COMICS_URL+"?v="+Date.now(),
+      {
+        cache:"no-store"
+      }
+    );
 
     if(!response.ok){
-      throw new Error("Knjižnice ni mogoče naložiti.");
+
+      throw new Error(
+        "Knjižnice ni mogoče naložiti."
+      );
+
     }
 
     comics=await response.json();
@@ -572,9 +663,11 @@ async function loadComics(){
   }catch(error){
 
     console.error(error);
+
     comics=[];
 
   }
+
 }
 
 /* ================= HOME ================= */
@@ -596,9 +689,10 @@ function renderHome(){
 
       </div>
 
-      <a class="navbtn"
-         href="admin.html"
-         title="Administrator">
+      <a
+        class="navbtn"
+        href="admin.html"
+        title="Administrator">
 
         ${icon("settings",22)}
 
@@ -623,10 +717,12 @@ function renderHome(){
 
         <div class="cta">
 
-          <button class="btn btn-primary"
-                  onclick="showLibrary()">
+          <button
+            class="btn btn-primary"
+            onclick="showLibrary()">
 
             ${icon("book",18)}
+
             Odpri knjižnico
 
           </button>
@@ -636,7 +732,9 @@ function renderHome(){
       </div>
 
     </section>
+
   `;
+
 }
 
 /* ================= LIBRARY ================= */
@@ -645,7 +743,9 @@ function showLibrary(){
 
   const tags=[
     ...new Set(
-      comics.flatMap(c=>Array.isArray(c.tags)?c.tags:[])
+      comics.flatMap(
+        c=>Array.isArray(c.tags)?c.tags:[]
+      )
     )
   ];
 
@@ -653,16 +753,19 @@ function showLibrary(){
 
     <div class="topnav">
 
-      <button class="navbtn"
-              onclick="renderHome()">
+      <button
+        class="navbtn"
+        onclick="renderHome()">
 
         ${icon("back",22)}
+
         Domov
 
       </button>
 
-      <a class="navbtn"
-         href="admin.html">
+      <a
+        class="navbtn"
+        href="admin.html">
 
         ${icon("settings",22)}
 
@@ -672,8 +775,12 @@ function showLibrary(){
 
     <main class="shell">
 
-      <h2 class="disp" style="font-size:36px;margin-bottom:20px">
+      <h2
+        class="disp"
+        style="font-size:36px;margin-bottom:20px">
+
         Knjižnica
+
       </h2>
 
       <input
@@ -685,15 +792,19 @@ function showLibrary(){
 
       <div class="chips">
 
-        <button class="chip active"
-                onclick="filterTag(null,this)">
+        <button
+          class="chip active"
+          onclick="filterTag(null,this)">
+
           Vse
+
         </button>
 
         ${tags.map(tag=>`
 
-          <button class="chip"
-                  onclick="filterTag('${esc(tag)}',this)">
+          <button
+            class="chip"
+            onclick="filterTag('${esc(tag)}',this)">
 
             ${esc(tag)}
 
@@ -706,15 +817,22 @@ function showLibrary(){
       <div id="comic-grid"></div>
 
     </main>
+
   `;
 
   const search=document.getElementById("search");
 
   if(search){
-    search.addEventListener("input",filterLibrary);
+
+    search.addEventListener(
+      "input",
+      filterLibrary
+    );
+
   }
 
   drawLibrary(comics);
+
 }
 
 let selectedTag=null;
@@ -723,46 +841,64 @@ function filterTag(tag,button){
 
   selectedTag=tag;
 
-  document.querySelectorAll(".chip")
-    .forEach(x=>x.classList.remove("active"));
+  document
+    .querySelectorAll(".chip")
+    .forEach(
+      x=>x.classList.remove("active")
+    );
 
   button.classList.add("active");
 
   filterLibrary();
+
 }
 
 function filterLibrary(){
 
   const query=
-    (document.getElementById("search")?.value||"")
-      .toLowerCase();
+    (
+      document
+        .getElementById("search")
+        ?.value||""
+    ).toLowerCase();
 
   let list=comics.filter(c=>{
 
-    const title=(c.title||"").toLowerCase();
+    const title=
+      (c.title||"").toLowerCase();
 
-    const tags=(c.tags||[])
-      .join(" ")
-      .toLowerCase();
+    const tags=
+      (c.tags||[])
+        .join(" ")
+        .toLowerCase();
 
-    const text=title+" "+tags;
+    const text=
+      title+" "+tags;
 
     const matchesSearch=
-      !query || text.includes(query);
+      !query ||
+      text.includes(query);
 
     const matchesTag=
       !selectedTag ||
-      (c.tags||[]).includes(selectedTag);
+      (c.tags||[]).includes(
+        selectedTag
+      );
 
     return matchesSearch && matchesTag;
+
   });
 
   drawLibrary(list);
+
 }
 
 function drawLibrary(list){
 
-  const grid=document.getElementById("comic-grid");
+  const grid=
+    document.getElementById(
+      "comic-grid"
+    );
 
   if(!grid) return;
 
@@ -774,13 +910,16 @@ function drawLibrary(list){
 
         <h3>Knjižnica je prazna</h3>
 
-        <p>Administrator še ni dodal stripov.</p>
+        <p>
+          Administrator še ni dodal stripov.
+        </p>
 
       </div>
 
     `;
 
     return;
+
   }
 
   grid.innerHTML=`
@@ -788,9 +927,6 @@ function drawLibrary(list){
     <div class="grid">
 
       ${list.map(comic=>{
-
-        const format=
-          FORMATS[comic.format]||FORMATS.auto;
 
         return `
 
@@ -802,28 +938,37 @@ function drawLibrary(list){
               role="button"
               tabindex="0"
               aria-label="Odpri strip ${esc(comic.title)}"
-              onkeydown="if(event.key==='Enter' || event.key===' ') openReader('${esc(comic.id)}')">
+              onkeydown="
+                if(
+                  event.key==='Enter' ||
+                  event.key===' '
+                ){
+                  openReader('${esc(comic.id)}')
+                }
+              ">
 
               <img
                 src="${esc(comic.panels?.[0]||"")}"
                 alt="${esc(comic.title)}"
                 loading="lazy">
 
-              
-
             </div>
 
             <div class="cardbody">
 
               <div class="cardtitle">
+
                 ${esc(comic.title)}
+
               </div>
 
               ${
                 comic.tags?.length
-                ? `<div class="cardtags">
+                ? `
+                  <div class="cardtags">
                     ${comic.tags.map(esc).join(" · ")}
-                   </div>`
+                  </div>
+                `
                 :""
               }
 
@@ -832,6 +977,7 @@ function drawLibrary(list){
                 onclick="openReader('${esc(comic.id)}')">
 
                 ${icon("arrow",16)}
+
                 Beri strip
 
               </button>
@@ -847,13 +993,16 @@ function drawLibrary(list){
     </div>
 
   `;
+
 }
 
 /* ================= READER ================= */
 
 function getComic(id){
 
-  return comics.find(c=>c.id===id);
+  return comics.find(
+    c=>c.id===id
+  );
 
 }
 
@@ -868,18 +1017,30 @@ async function openReader(id,start=0){
     currentComic.panels.length-1
   );
 
-  currentFormat=currentComic.format||"auto";
-  currentDirection=currentComic.direction||"ltr";
+  currentFormat=
+    currentComic.format||"auto";
+
+  currentDirection=
+    currentComic.direction||"ltr";
 
   zoomed=false;
+
   readerVisible=true;
+
   wheelLocked=false;
 
-  document.body.classList.add("reader-active");
+  middleMouseDown=false;
+
+  middleStartZoom=1;
+
+  document.body.classList.add(
+    "reader-active"
+  );
 
   renderReader();
 
-  await requestOrientation;
+  await requestOrientation();
+
 }
 
 async function requestOrientation(){
@@ -887,14 +1048,18 @@ async function requestOrientation(){
   let orientation=null;
 
   if(currentFormat==="landscape"){
+
     orientation="landscape";
+
   }
 
   if(
     currentFormat==="portrait" ||
     currentFormat==="vertical"
   ){
+
     orientation="portrait";
+
   }
 
   if(currentFormat==="auto"){
@@ -904,27 +1069,39 @@ async function requestOrientation(){
     img.onload=async()=>{
 
       orientation=
-        img.naturalWidth > img.naturalHeight
+        img.naturalWidth >
+        img.naturalHeight
         ? "landscape"
         : "portrait";
 
-      await lockOrientation(orientation);
+      await lockOrientation(
+        orientation
+      );
 
       resizeReader();
 
     };
 
-    img.src=currentComic.panels[currentIndex];
+    img.src=
+      currentComic.panels[
+        currentIndex
+      ];
 
     return;
+
   }
 
-  await lockOrientation(orientation);
+  await lockOrientation(
+    orientation
+  );
 
   resizeReader();
+
 }
 
-async function lockOrientation(orientation){
+async function lockOrientation(
+  orientation
+){
 
   if(!orientation) return;
 
@@ -935,7 +1112,9 @@ async function lockOrientation(orientation){
       screen.orientation.lock
     ){
 
-      await screen.orientation.lock(orientation);
+      await screen.orientation.lock(
+        orientation
+      );
 
     }
 
@@ -947,6 +1126,7 @@ async function lockOrientation(orientation){
     );
 
   }
+
 }
 
 function unlockOrientation(){
@@ -965,6 +1145,8 @@ function unlockOrientation(){
   }catch(e){}
 
 }
+
+/* ================= READER RENDER ================= */
 
 function renderReader(){
 
@@ -990,8 +1172,11 @@ function renderReader(){
           <img
             id="reader-img"
             class="reader-img"
-            src="${esc(comic.panels[currentIndex])}"
-            alt="${esc(comic.title)}">
+            src="${esc(
+              comic.panels[currentIndex]
+            )}"
+            alt="${esc(comic.title)}"
+            draggable="false">
 
         </div>
 
@@ -1013,13 +1198,18 @@ function renderReader(){
           </button>
 
           <div class="reader-title">
+
             ${esc(comic.title)}
+
           </div>
 
-          <div class="counter"
-               id="counter">
+          <div
+            class="counter"
+            id="counter">
 
-            ${currentIndex+1} / ${comic.panels.length}
+            ${currentIndex+1}
+            /
+            ${comic.panels.length}
 
           </div>
 
@@ -1027,8 +1217,14 @@ function renderReader(){
 
         <div class="progress">
 
-          <i id="reader-progress"
-             style="width:${((currentIndex+1)/comic.panels.length)*100}%">
+          <i
+            id="reader-progress"
+            style="
+              width:${(
+                (currentIndex+1) /
+                comic.panels.length
+              )*100}%;
+            ">
           </i>
 
         </div>
@@ -1038,21 +1234,31 @@ function renderReader(){
       ${
         comic.panels.length<=20
         ? `
+
           <div class="dots">
 
-            ${comic.panels.map((_,i)=>`
+            ${comic.panels.map(
+              (_,i)=>`
 
-              <span class="dot ${i===currentIndex?"active":""}">
-              </span>
+                <span
+                  class="dot ${
+                    i===currentIndex
+                    ? "active"
+                    : ""
+                  }">
+                </span>
 
-            `).join("")}
+              `
+            ).join("")}
 
           </div>
+
         `
         :""
       }
 
     </div>
+
   `;
 
   resizeReader();
@@ -1061,66 +1267,98 @@ function renderReader(){
 
   setupReaderWheel();
 
+  setupMiddleMouseZoom();
+
   preload();
 
 }
 
+/* ================= RESIZE ================= */
+
 function resizeReader(){
 
-  const frame=document.getElementById("reader-frame");
+  const frame=
+    document.getElementById(
+      "reader-frame"
+    );
 
   if(!frame) return;
 
   const format=
-    FORMATS[currentComic.format]||FORMATS.auto;
+    FORMATS[
+      currentComic.format
+    ] || FORMATS.auto;
 
   if(format.ratio){
 
-    const vw=window.innerWidth;
-    const vh=window.innerHeight;
+    const vw=
+      window.innerWidth;
+
+    const vh=
+      window.innerHeight - 72;
 
     let width=vw;
-    let height=width/format.ratio;
+
+    let height=
+      width / format.ratio;
 
     if(height>vh){
 
       height=vh;
-      width=height*format.ratio;
+
+      width=
+        height * format.ratio;
 
     }
 
-    frame.style.width=width+"px";
-    frame.style.height=height+"px";
+    frame.style.width=
+      width+"px";
+
+    frame.style.height=
+      height+"px";
 
   }else{
 
-    frame.style.width="100vw";
-    frame.style.height="100vh";
+    frame.style.width=
+      "100%";
+
+    frame.style.height=
+      "100%";
 
   }
 
 }
 
+/* ================= PRELOAD ================= */
+
 function preload(){
 
-  [-1,1].forEach(offset=>{
+  [-1,1].forEach(
+    offset=>{
 
-    const index=currentIndex+offset;
+      const index=
+        currentIndex+offset;
 
-    if(
-      index>=0 &&
-      index<currentComic.panels.length
-    ){
+      if(
+        index>=0 &&
+        index<
+        currentComic.panels.length
+      ){
 
-      const img=new Image();
+        const img=
+          new Image();
 
-      img.src=currentComic.panels[index];
+        img.src=
+          currentComic.panels[index];
+
+      }
 
     }
-
-  });
+  );
 
 }
+
+/* ================= PANELS ================= */
 
 function nextPanel(){
 
@@ -1151,13 +1389,22 @@ function previousPanel(){
 
 function updateReaderImage(){
 
-  const img=document.getElementById("reader-img");
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
 
   if(!img) return;
 
-  img.src=currentComic.panels[currentIndex];
+  img.src=
+    currentComic.panels[
+      currentIndex
+    ];
 
-  const counter=document.getElementById("counter");
+  const counter=
+    document.getElementById(
+      "counter"
+    );
 
   if(counter){
 
@@ -1166,30 +1413,41 @@ function updateReaderImage(){
 
   }
 
-  const progress=document.getElementById("reader-progress");
+  const progress=
+    document.getElementById(
+      "reader-progress"
+    );
 
   if(progress){
 
     progress.style.width=
-      `${((currentIndex+1)/currentComic.panels.length)*100}%`;
+      `${(
+        (currentIndex+1) /
+        currentComic.panels.length
+      )*100}%`;
 
   }
 
-  document.querySelectorAll(".dot")
-    .forEach((dot,i)=>{
+  document
+    .querySelectorAll(".dot")
+    .forEach(
+      (dot,i)=>{
 
-      dot.classList.toggle(
-        "active",
-        i===currentIndex
-      );
+        dot.classList.toggle(
+          "active",
+          i===currentIndex
+        );
 
-    });
+      }
+    );
 
   resetZoom();
 
   preload();
 
-  if(currentComic.format==="auto"){
+  if(
+    currentComic.format==="auto"
+  ){
 
     requestOrientation();
 
@@ -1223,7 +1481,9 @@ function handleSwipe(dx){
 function setupReaderWheel(){
 
   const stage=
-    document.getElementById("reader-stage");
+    document.getElementById(
+      "reader-stage"
+    );
 
   if(!stage) return;
 
@@ -1239,13 +1499,17 @@ function setupReaderWheel(){
 
       if(wheelLocked) return;
 
-      if(Math.abs(e.deltaY)<5) return;
+      if(
+        Math.abs(e.deltaY)<5
+      ) return;
 
       wheelLocked=true;
 
       if(e.deltaY>0){
 
-        if(currentDirection==="ltr"){
+        if(
+          currentDirection==="ltr"
+        ){
 
           nextPanel();
 
@@ -1257,7 +1521,9 @@ function setupReaderWheel(){
 
       }else{
 
-        if(currentDirection==="ltr"){
+        if(
+          currentDirection==="ltr"
+        ){
 
           previousPanel();
 
@@ -1269,11 +1535,12 @@ function setupReaderWheel(){
 
       }
 
-      setTimeout(()=>{
-
-        wheelLocked=false;
-
-      },250);
+      setTimeout(
+        ()=>{
+          wheelLocked=false;
+        },
+        250
+      );
 
     },
     {
@@ -1283,12 +1550,270 @@ function setupReaderWheel(){
 
 }
 
+/* ================= MIDDLE MOUSE ZOOM ================= */
+
+function setupMiddleMouseZoom(){
+
+  const stage=
+    document.getElementById(
+      "reader-stage"
+    );
+
+  const reader=
+    document.getElementById(
+      "reader"
+    );
+
+  if(!stage || !reader) return;
+
+  stage.addEventListener(
+    "pointerdown",
+    e=>{
+
+      /*
+        Srednji miš = button 1
+      */
+      if(e.button!==1) return;
+
+      e.preventDefault();
+
+      middleMouseDown=true;
+
+      middleStartX=
+        e.clientX;
+
+      middleStartZoom=
+        getCurrentZoom();
+
+      reader.classList.add(
+        "zoom-dragging"
+      );
+
+      try{
+        stage.setPointerCapture(
+          e.pointerId
+        );
+      }catch(err){}
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointermove",
+    e=>{
+
+      if(!middleMouseDown) return;
+
+      e.preventDefault();
+
+      const dx=
+        e.clientX-middleStartX;
+
+      /*
+        Desno = povečava
+        Levo = pomanjšava
+
+        250px premika približno
+        1x dodatne povečave.
+      */
+      const zoom=
+        middleStartZoom +
+        dx/250;
+
+      const clamped=
+        Math.max(
+          MIN_ZOOM,
+          Math.min(
+            MAX_ZOOM,
+            zoom
+          )
+        );
+
+      applyZoom(clamped);
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointerup",
+    e=>{
+
+      if(e.button!==1) return;
+
+      e.preventDefault();
+
+      middleMouseDown=false;
+
+      reader.classList.remove(
+        "zoom-dragging"
+      );
+
+      try{
+        stage.releasePointerCapture(
+          e.pointerId
+        );
+      }catch(err){}
+
+    }
+  );
+
+  stage.addEventListener(
+    "pointercancel",
+    e=>{
+
+      if(!middleMouseDown) return;
+
+      middleMouseDown=false;
+
+      reader.classList.remove(
+        "zoom-dragging"
+      );
+
+    }
+  );
+
+  /*
+    Prepreči odpiranje menija brskalnika
+    ob pritisku srednjega gumba.
+  */
+  stage.addEventListener(
+    "mousedown",
+    e=>{
+
+      if(e.button===1){
+
+        e.preventDefault();
+
+      }
+
+    }
+  );
+
+  stage.addEventListener(
+    "auxclick",
+    e=>{
+
+      if(e.button===1){
+
+        e.preventDefault();
+
+      }
+
+    }
+  );
+
+}
+
+/* ================= ZOOM HELPERS ================= */
+
+function getCurrentZoom(){
+
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
+
+  if(!img) return 1;
+
+  if(!img.dataset.zoom){
+
+    img.dataset.zoom="1";
+
+  }
+
+  const value=
+    parseFloat(
+      img.dataset.zoom
+    );
+
+  return Number.isFinite(value)
+    ? value
+    : 1;
+
+}
+
+function applyZoom(value){
+
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
+
+  if(!img) return;
+
+  const zoom=
+    Math.max(
+      MIN_ZOOM,
+      Math.min(
+        MAX_ZOOM,
+        value
+      )
+    );
+
+  img.dataset.zoom=
+    String(zoom);
+
+  if(zoom<=1){
+
+    zoomed=false;
+
+    img.classList.remove(
+      "zoomed"
+    );
+
+    img.style.transform=
+      "scale(1)";
+
+  }else{
+
+    zoomed=true;
+
+    img.classList.add(
+      "zoomed"
+    );
+
+    img.style.transform=
+      `scale(${zoom})`;
+
+  }
+
+}
+
+function resetZoom(){
+
+  zoomed=false;
+
+  const img=
+    document.getElementById(
+      "reader-img"
+    );
+
+  if(img){
+
+    img.dataset.zoom="1";
+
+    img.classList.remove(
+      "zoomed"
+    );
+
+    img.style.transform=
+      "scale(1)";
+
+    img.style.transformOrigin=
+      "center";
+
+  }
+
+}
+
 /* ================= TOUCH ================= */
 
 function setupReaderTouch(){
 
   const stage=
-    document.getElementById("reader-stage");
+    document.getElementById(
+      "reader-stage"
+    );
 
   if(!stage) return;
 
@@ -1300,8 +1825,16 @@ function setupReaderTouch(){
     "pointerdown",
     e=>{
 
+      /*
+        Srednji gumb obravnava
+        ločena zoom funkcija.
+      */
+      if(e.button===1) return;
+
       startX=e.clientX;
+
       startY=e.clientY;
+
       startTime=Date.now();
 
     }
@@ -1311,13 +1844,25 @@ function setupReaderTouch(){
     "pointerup",
     e=>{
 
-      const dx=e.clientX-startX;
-      const dy=e.clientY-startY;
-      const duration=Date.now()-startTime;
+      /*
+        Srednji gumb ne sme sprožiti
+        običajnega swipe/tap vedenja.
+      */
+      if(e.button===1) return;
+
+      const dx=
+        e.clientX-startX;
+
+      const dy=
+        e.clientY-startY;
+
+      const duration=
+        Date.now()-startTime;
 
       if(
         Math.abs(dx)>50 &&
-        Math.abs(dx)>Math.abs(dy)*1.2 &&
+        Math.abs(dx)>
+        Math.abs(dy)*1.2 &&
         duration<800 &&
         !zoomed
       ){
@@ -1325,6 +1870,7 @@ function setupReaderTouch(){
         handleSwipe(dx);
 
         return;
+
       }
 
       if(
@@ -1340,35 +1886,49 @@ function setupReaderTouch(){
     }
   );
 
+  /*
+    Dvoklik na telefonu/računalniku
+    še vedno deluje kot zoom 2.2x.
+  */
   stage.addEventListener(
     "dblclick",
     e=>{
 
       const img=
-        document.getElementById("reader-img");
+        document.getElementById(
+          "reader-img"
+        );
 
       if(!img) return;
 
-      zoomed=!zoomed;
+      const current=
+        getCurrentZoom();
 
-      if(zoomed){
+      if(current>1){
 
-        const rect=img.getBoundingClientRect();
+        resetZoom();
+
+      }else{
+
+        const rect=
+          img.getBoundingClientRect();
 
         const x=
-          ((e.clientX-rect.left)/rect.width)*100;
+          (
+            (e.clientX-rect.left) /
+            rect.width
+          )*100;
 
         const y=
-          ((e.clientY-rect.top)/rect.height)*100;
+          (
+            (e.clientY-rect.top) /
+            rect.height
+          )*100;
 
         img.style.transformOrigin=
           `${x}% ${y}%`;
 
-        img.classList.add("zoomed");
-
-      }else{
-
-        resetZoom();
+        applyZoom(2.2);
 
       }
 
@@ -1377,33 +1937,17 @@ function setupReaderTouch(){
 
 }
 
-function resetZoom(){
-
-  zoomed=false;
-
-  const img=
-    document.getElementById("reader-img");
-
-  if(img){
-
-    img.classList.remove("zoomed");
-
-    img.style.transform="";
-
-    img.style.transformOrigin="";
-
-  }
-
-}
-
 /* ================= READER UI ================= */
 
 function toggleReaderUI(){
 
-  readerVisible=!readerVisible;
+  readerVisible=
+    !readerVisible;
 
   document
-    .getElementById("reader-top")
+    .getElementById(
+      "reader-top"
+    )
     ?.classList.toggle(
       "hidden-ui",
       !readerVisible
@@ -1418,15 +1962,20 @@ function closeReader(event){
   if(event){
 
     event.preventDefault();
+
     event.stopPropagation();
 
   }
 
   unlockOrientation();
 
-  document.body.classList.remove("reader-active");
+  document.body.classList.remove(
+    "reader-active"
+  );
 
   currentComic=null;
+
+  middleMouseDown=false;
 
   renderHome();
 
@@ -1434,55 +1983,69 @@ function closeReader(event){
 
 /* ================= KEYBOARD ================= */
 
-document.addEventListener("keydown",e=>{
+document.addEventListener(
+  "keydown",
+  e=>{
 
-  if(!currentComic) return;
+    if(!currentComic) return;
 
-  if(e.key==="ArrowRight"){
+    if(e.key==="ArrowRight"){
 
-    currentDirection==="ltr"
-      ? nextPanel()
-      : previousPanel();
+      currentDirection==="ltr"
+        ? nextPanel()
+        : previousPanel();
+
+    }
+
+    if(e.key==="ArrowLeft"){
+
+      currentDirection==="ltr"
+        ? previousPanel()
+        : nextPanel();
+
+    }
+
+    if(e.key==="Escape"){
+
+      closeReader();
+
+    }
 
   }
-
-  if(e.key==="ArrowLeft"){
-
-    currentDirection==="ltr"
-      ? previousPanel()
-      : nextPanel();
-
-  }
-
-  if(e.key==="Escape"){
-
-    closeReader();
-
-  }
-
-});
+);
 
 /* ================= RESIZE ================= */
 
 window.addEventListener(
   "resize",
   ()=>{
+
     if(currentComic){
+
       resizeReader();
+
     }
+
   }
 );
 
 window.addEventListener(
   "orientationchange",
   ()=>{
-    setTimeout(()=>{
 
-      if(currentComic){
-        resizeReader();
-      }
+    setTimeout(
+      ()=>{
 
-    },150);
+        if(currentComic){
+
+          resizeReader();
+
+        }
+
+      },
+      150
+    );
+
   }
 );
 
