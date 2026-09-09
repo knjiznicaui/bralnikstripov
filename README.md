@@ -1,1 +1,1 @@
-# bralnikstripv
+# bralnikstripov
