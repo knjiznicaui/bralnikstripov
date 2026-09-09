@@ -339,8 +339,7 @@ button{
   transition:.2s;
 }
 
-.reader-top.hidden-ui,
-.reader-bottom.hidden-ui{
+.reader-top.hidden-ui{
   opacity:0;
   pointer-events:none;
 }
@@ -385,37 +384,16 @@ button{
   background:var(--red);
 }
 
-.reader-bottom{
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  z-index:5;
-  padding:20px 20px calc(15px + var(--safeB));
-  display:flex;
-  justify-content:center;
-  background:linear-gradient(transparent,#000c);
-  transition:.2s;
-}
-
-.menu{
-  border:1px solid #555;
-  background:#222c;
-  color:#fff;
-  border-radius:100px;
-  padding:10px 22px;
-  font-weight:700;
-}
-
 .dots{
   position:absolute;
   z-index:5;
-  bottom:65px;
+  bottom:20px;
   left:0;
   right:0;
   display:flex;
   justify-content:center;
   gap:5px;
+  pointer-events:none;
 }
 
 .dot{
@@ -428,75 +406,6 @@ button{
 .dot.active{
   width:15px;
   background:#fff;
-}
-
-.sheet-overlay{
-  position:absolute;
-  inset:0;
-  z-index:6;
-  background:#0009;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s;
-}
-
-.sheet-overlay.open{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.sheet{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:7;
-  background:var(--surface);
-  padding:12px 20px calc(20px + var(--safeB));
-  border-radius:18px 18px 0 0;
-  transform:translateY(100%);
-  transition:.25s;
-  max-height:75vh;
-  overflow:auto;
-}
-
-.sheet.open{
-  transform:translateY(0);
-}
-
-.handle{
-  width:38px;
-  height:4px;
-  background:#777;
-  margin:5px auto 20px;
-  border-radius:10px;
-}
-
-.sheet h4{
-  color:var(--muted);
-  font-size:12px;
-  text-transform:uppercase;
-  margin:18px 0 9px;
-}
-
-.sheet button{
-  border:2px solid var(--line);
-  background:none;
-  color:var(--text);
-  padding:10px 14px;
-  border-radius:7px;
-  font-weight:700;
-}
-
-.sheet button.active{
-  border-color:var(--red);
-  color:var(--red);
-}
-
-.format-row{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
 }
 
 @media(orientation:landscape){
@@ -609,7 +518,6 @@ function icon(name,size=20){
     close:`<path d="M18 6L6 18M6 6l12 12"/>`,
     book:`<path d="M4 5a2 2 0 012-2h5v18H6a2 2 0 01-2-2z"/><path d="M20 5a2 2 0 00-2-2h-5v18h5a2 2 0 002-2z"/>`,
     settings:`<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.2 1.6l2 1.5-2 3.4-2.3-1a7 7 0 01-2.6 1.5L13.5 21h-3l-.4-2a7 7 0 01-2.6-1.5l-2.3 1-2.3-1 2-3.4-2-1.5A7 7 0 015 12a7 7 0 01.2-1.6l-2-1.5 2-3.4 2.3 1a7 7 0 012.6-1.5l.4-2h3l.4 2a7 7 0 012.6 1.5l2.3-1 2 3.4-2 1.5A7 7 0 0119 12z"/>`,
-    menu:`<path d="M4 7h16M4 12h16M4 17h16"/>`,
     arrow:`<path d="M5 12h14M13 6l6 6-6 6"/>`
   };
 
@@ -1093,21 +1001,6 @@ function renderReader(){
 
       </div>
 
-      <div
-        class="reader-bottom"
-        id="reader-bottom">
-
-        <button
-          class="menu"
-          onclick="toggleSheet()">
-
-          ${icon("menu",16)}
-          Meni
-
-        </button>
-
-      </div>
-
       ${
         comic.panels.length<=20
         ? `
@@ -1124,69 +1017,6 @@ function renderReader(){
         `
         :""
       }
-
-      <div
-        class="sheet-overlay"
-        id="sheet-overlay"
-        onclick="closeSheet()">
-      </div>
-
-      <div
-        class="sheet"
-        id="sheet">
-
-        <div class="handle"></div>
-
-        <h4>Format</h4>
-
-        <div class="format-row">
-
-          ${Object.keys(FORMATS).map(key=>`
-
-            <button
-              class="${comic.format===key?"active":""}"
-              onclick="changeFormat('${key}')">
-
-              ${FORMATS[key].label}
-
-            </button>
-
-          `).join("")}
-
-        </div>
-
-        <h4>Smer branja</h4>
-
-        <div class="format-row">
-
-          <button
-            class="${currentDirection==="ltr"?"active":""}"
-            onclick="changeDirection('ltr')">
-
-            Zahodna →
-
-          </button>
-
-          <button
-            class="${currentDirection==="rtl"?"active":""}"
-            onclick="changeDirection('rtl')">
-
-            ← Manga
-
-          </button>
-
-        </div>
-
-        <button
-          class="btn"
-          style="width:100%;margin-top:20px"
-          onclick="closeReader()">
-
-          Zapri bralnik
-
-        </button>
-
-      </div>
 
     </div>
   `;
@@ -1379,20 +1209,10 @@ function setupReaderWheel(){
 
       e.preventDefault();
 
-      /*
-        Če je slika povečana, kolešček
-        ne menja panela.
-      */
       if(zoomed) return;
 
-      /*
-        Prepreči preskakovanje več slik.
-      */
       if(wheelLocked) return;
 
-      /*
-        Ignoriramo zelo majhne premike.
-      */
       if(Math.abs(e.deltaY)<5) return;
 
       wheelLocked=true;
@@ -1560,71 +1380,6 @@ function toggleReaderUI(){
       "hidden-ui",
       !readerVisible
     );
-
-  document
-    .getElementById("reader-bottom")
-    ?.classList.toggle(
-      "hidden-ui",
-      !readerVisible
-    );
-
-}
-
-function toggleSheet(){
-
-  document
-    .getElementById("sheet")
-    ?.classList.toggle("open");
-
-  document
-    .getElementById("sheet-overlay")
-    ?.classList.toggle("open");
-
-}
-
-function closeSheet(){
-
-  document
-    .getElementById("sheet")
-    ?.classList.remove("open");
-
-  document
-    .getElementById("sheet-overlay")
-    ?.classList.remove("open");
-
-}
-
-function changeFormat(format){
-
-  currentComic.format=format;
-  currentFormat=format;
-
-  closeSheet();
-
-  renderReader();
-
-  requestOrientation();
-
-}
-
-function changeDirection(direction){
-
-  currentDirection=direction;
-  currentComic.direction=direction;
-
-  closeSheet();
-
-}
-
-async function closeReader(){
-
-  unlockOrientation();
-
-  document.body.classList.remove("reader-active");
-
-  currentComic=null;
-
-  renderHome();
 
 }
 
