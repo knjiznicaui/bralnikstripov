@@ -413,6 +413,29 @@
         placeholder="Naslov stripa"
       >
 
+
+      <!-- =====================================================
+           NASLOVNICA
+           ===================================================== -->
+
+      <label for="comicCover">
+        Naslovnica — URL slike
+      </label>
+
+      <input
+        id="comicCover"
+        type="url"
+        placeholder="https://i.imgur.com/primer.jpg"
+      >
+
+      <div class="small">
+
+        Prilepi neposredno povezavo do slike naslovnice,
+        na primer povezavo iz Imgurja.
+
+      </div>
+
+
       <label for="comicFormat">
         Format
       </label>
@@ -1315,6 +1338,15 @@ function renderComics() {
           Število slik:
           ${panels}
 
+          <br>
+
+          Naslovnica:
+          ${
+            comic.cover
+              ? "✅ Dodana"
+              : "❌ Ni dodana"
+          }
+
         </div>
 
 
@@ -1369,6 +1401,12 @@ function newComic() {
 
   document.getElementById(
     "comicTitle"
+  ).value =
+    "";
+
+
+  document.getElementById(
+    "comicCover"
   ).value =
     "";
 
@@ -1449,6 +1487,12 @@ function editComic(id) {
 
 
   document.getElementById(
+    "comicCover"
+  ).value =
+    comic.cover || "";
+
+
+  document.getElementById(
     "comicFormat"
   ).value =
     comic.format || "auto";
@@ -1503,6 +1547,12 @@ async function saveComic() {
   const title =
     document.getElementById(
       "comicTitle"
+    ).value.trim();
+
+
+  const cover =
+    document.getElementById(
+      "comicCover"
     ).value.trim();
 
 
@@ -1599,6 +1649,9 @@ async function saveComic() {
 
     title:
       title,
+
+    cover:
+      cover,
 
     format:
       format,
