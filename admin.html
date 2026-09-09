@@ -1253,9 +1253,106 @@ https://moja-stran.si/slika3.jpg"
    */
 
   async function saveComicsToGithub(
-    comicsData,
-    sha
-  ) {
+  comicsData,
+  sha
+) {
+
+  const settings =
+    getGitHubSettings();
+
+
+  /*
+   * Najprej ugotovimo privzeto vejo repozitorija
+   */
+
+  const repoUrl =
+    "https://api.github.com/repos/" +
+    encodeURIComponent(settings.owner) +
+    "/" +
+    encodeURIComponent(settings.repo);
+
+
+  const repoData =
+    await githubRequest(
+      "GET",
+      repoUrl
+    );
+
+
+  const branch =
+    repoData.default_branch;
+
+
+  /*
+   * Pretvori comics.json v UTF-8 Base64
+   */
+
+  const json =
+    JSON.stringify(
+      comicsData,
+      null,
+      2
+    );
+
+
+  const bytes =
+    new TextEncoder()
+      .encode(json);
+
+
+  let binary = "";
+
+
+  bytes.forEach(
+    byte => {
+
+      binary +=
+        String.fromCharCode(byte);
+
+    }
+  );
+
+
+  const base64 =
+    btoa(binary);
+
+
+  /*
+   * GitHub Contents API
+   */
+
+  const url =
+    "https://api.github.com/repos/" +
+    encodeURIComponent(settings.owner) +
+    "/" +
+    encodeURIComponent(settings.repo) +
+    "/contents/comics.json";
+
+
+  const body = {
+
+    message:
+      "Update comics.json",
+
+    content:
+      base64,
+
+    sha:
+      sha,
+
+    branch:
+      branch
+
+  };
+
+
+  return githubRequest(
+    "PUT",
+    url,
+    body
+  );
+
+}
 
     const settings =
       getGitHubSettings();
