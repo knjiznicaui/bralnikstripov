@@ -13,5 +13,17 @@
       "https://example.com/slika2.jpg",
       "https://example.com/slika3.jpg"
     ]
+  },
+  {
+    "id": "strip 1",
+    "title": "sdfsdf",
+    "format": "auto",
+    "direction": "ltr",
+    "tags": [
+      "sdfsd"
+    ],
+    "panels": [
+      "https://i.imgur.com/lZEqLYo.jpeg"
+    ]
   }
 ]
