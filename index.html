@@ -253,19 +253,6 @@ button{
   transform:scale(1.02);
 }
 
-.badge{
-  position:absolute;
-  top:8px;
-  left:8px;
-  padding:4px 8px;
-  border-radius:20px;
-  background:rgba(0,0,0,.8);
-  color:#fff;
-  font-size:11px;
-  font-weight:700;
-  pointer-events:none;
-}
-
 .cardbody{
   padding:12px;
 }
@@ -302,8 +289,8 @@ button{
 }
 
 /*
-  Bralni prostor se začne pod zgornjim menijem,
-  zato slika ne leži pod rdečo progress črto.
+  Bralni prostor se začne takoj pod zgornjim
+  menijem in sega do dna zaslona.
 */
 .reader-stage{
   position:absolute;
@@ -323,27 +310,40 @@ button{
   z-index:1;
 }
 
+/*
+  Okvir nima več nobenega formata ali razmerja.
+  Vedno zavzame ves razpoložljivi prostor.
+*/
 .reader-frame{
   position:relative;
+
+  width:100%;
+  height:100%;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
   overflow:hidden;
   background:#000;
-
-  max-width:100%;
-  max-height:100%;
 }
 
 .reader-img{
   display:block;
+
+  /*
+    Slika je čim večja, kolikor dopušča
+    prostor pod rdečo črto.
+  */
   width:auto;
   height:auto;
+
   max-width:100%;
   max-height:100%;
+
   object-fit:contain;
 
-  transform-origin:center;
+  transform-origin:center center;
   transition:transform .08s linear;
 
   user-select:none;
@@ -368,7 +368,7 @@ button{
   cursor:ew-resize;
 }
 
-/* ZGORNJI MENI */
+/* ================= ZGORNJI MENI ================= */
 
 .reader-top{
   position:absolute;
@@ -477,34 +477,6 @@ button{
   background:#fff;
 }
 
-@media(orientation:landscape){
-  .reader-frame.landscape{
-    width:100%!important;
-    height:100%!important;
-  }
-}
-
-@media(orientation:portrait){
-  .reader-frame.portrait{
-    width:100%!important;
-    height:100%!important;
-  }
-}
-
-.reader-frame.landscape .reader-img{
-  max-width:100%;
-  max-height:100%;
-  width:auto;
-  height:auto;
-}
-
-.reader-frame.portrait .reader-img{
-  max-width:100%;
-  max-height:100%;
-  width:auto;
-  height:auto;
-}
-
 @media(max-width:600px){
 
   .hero{
@@ -541,33 +513,9 @@ const COMICS_URL =
   REPO_NAME + "/" +
   BRANCH + "/comics.json";
 
-const FORMATS = {
-  auto:{
-    label:"Samodejno",
-    ratio:null
-  },
-  vertical:{
-    label:"9:16",
-    ratio:9/16
-  },
-  portrait:{
-    label:"3:4",
-    ratio:3/4
-  },
-  square:{
-    label:"1:1",
-    ratio:1
-  },
-  landscape:{
-    label:"16:9",
-    ratio:16/9
-  }
-};
-
 let comics=[];
 let currentComic=null;
 let currentIndex=0;
-let currentFormat="auto";
 let currentDirection="ltr";
 let readerVisible=true;
 let zoomed=false;
@@ -724,8 +672,7 @@ function renderHome(){
 
         <p class="tagline">
           Celozaslonski bralnik stripov.
-          Ležeči stripi se prilagodijo ležečemu zaslonu,
-          pokončni pa pokončnemu.
+          Slike se samodejno prilagodijo razpoložljivemu prostoru.
         </p>
 
         <div class="cta">
@@ -1030,9 +977,6 @@ async function openReader(id,start=0){
     currentComic.panels.length-1
   );
 
-  currentFormat=
-    currentComic.format||"auto";
-
   currentDirection=
     currentComic.direction||"ltr";
 
@@ -1057,113 +1001,6 @@ async function openReader(id,start=0){
 
   renderReader();
 
-  await requestOrientation();
-
-}
-
-/* ================= ORIENTATION ================= */
-
-async function requestOrientation(){
-
-  let orientation=null;
-
-  if(currentFormat==="landscape"){
-
-    orientation="landscape";
-
-  }
-
-  if(
-    currentFormat==="portrait" ||
-    currentFormat==="vertical"
-  ){
-
-    orientation="portrait";
-
-  }
-
-  if(currentFormat==="auto"){
-
-    const img=new Image();
-
-    img.onload=async()=>{
-
-      orientation=
-        img.naturalWidth >
-        img.naturalHeight
-        ? "landscape"
-        : "portrait";
-
-      await lockOrientation(
-        orientation
-      );
-
-      resizeReader();
-
-    };
-
-    img.src=
-      currentComic.panels[
-        currentIndex
-      ];
-
-    return;
-
-  }
-
-  await lockOrientation(
-    orientation
-  );
-
-  resizeReader();
-
-}
-
-async function lockOrientation(
-  orientation
-){
-
-  if(!orientation) return;
-
-  try{
-
-    if(
-      screen.orientation &&
-      screen.orientation.lock
-    ){
-
-      await screen.orientation.lock(
-        orientation
-      );
-
-    }
-
-  }catch(error){
-
-    console.log(
-      "Samodejno zaklepanje orientacije ni podprto.",
-      error
-    );
-
-  }
-
-}
-
-function unlockOrientation(){
-
-  try{
-
-    if(
-      screen.orientation &&
-      screen.orientation.unlock
-    ){
-
-      screen.orientation.unlock();
-
-    }
-
-  }catch(e){}
-
 }
 
 /* ================= READER RENDER ================= */
@@ -1171,11 +1008,6 @@ function unlockOrientation(){
 function renderReader(){
 
   const comic=currentComic;
-
-  const orientationClass=
-    comic.format==="landscape"
-    ? "landscape"
-    : "portrait";
 
   app.innerHTML=`
 
@@ -1186,7 +1018,7 @@ function renderReader(){
         id="reader-stage">
 
         <div
-          class="reader-frame ${orientationClass}"
+          class="reader-frame"
           id="reader-frame">
 
           <img
@@ -1306,54 +1138,15 @@ function resizeReader(){
 
   if(!frame) return;
 
-  const format=
-    FORMATS[
-      currentComic.format
-    ] || FORMATS.auto;
-
-  if(format.ratio){
-
-    const vw=
-      window.innerWidth;
-
-    const vh=
-      window.innerHeight - 72;
-
-    let width=vw;
-
-    let height=
-      width / format.ratio;
-
-    if(height>vh){
-
-      height=vh;
-
-      width=
-        height * format.ratio;
-
-    }
-
-    frame.style.width=
-      width+"px";
-
-    frame.style.height=
-      height+"px";
-
-  }else{
-
-    frame.style.width=
-      "100%";
-
-    frame.style.height=
-      "100%";
-
-  }
-
   /*
-    Po spremembi velikosti zaslona
-    omejimo trenutno pozicijo slike,
-    da ne more ostati izven prostora.
+    Ni več formatov.
+
+    Okvir vedno zavzame ves prostor
+    pod zgornjim menijem.
   */
+  frame.style.width="100%";
+  frame.style.height="100%";
+
   clampPan();
 
   updateImageTransform();
@@ -1475,14 +1268,6 @@ function updateReaderImage(){
   resetZoom();
 
   preload();
-
-  if(
-    currentComic.format==="auto"
-  ){
-
-    requestOrientation();
-
-  }
 
 }
 
@@ -1645,9 +1430,6 @@ function setupMiddleMouseZoom(){
       /*
         Desno = povečava
         Levo = pomanjšava
-
-        250px premika približno
-        1x dodatne povečave.
       */
       const zoom=
         middleStartZoom +
@@ -1758,9 +1540,6 @@ function setupLeftMousePan(){
       /*
         Panning uporabljamo samo z
         levim gumbom prave miške.
-
-        Telefonski touch ostane
-        namenjen swipe upravljanju.
       */
       if(
         e.pointerType!=="mouse" ||
@@ -1946,8 +1725,8 @@ function getPanBounds(){
   }
 
   /*
-    Izračunamo velikost slike pri 1x,
-    tako kot jo omejuje max-width/max-height.
+    Izračunamo dejansko velikost slike
+    pri 1x glede na razpoložljiv prostor.
   */
   const baseScale=
     Math.min(
@@ -2033,11 +1812,6 @@ function updateImageTransform(){
   const zoom=
     getCurrentZoom();
 
-  /*
-    Vedno uporabimo sredino kot
-    transform-origin, ker tako
-    panning ostane natančen.
-  */
   img.style.transformOrigin=
     "center center";
 
@@ -2120,11 +1894,6 @@ function applyZoom(value){
 
     zoomed=true;
 
-    /*
-      Pri povečavi preverimo,
-      da trenutni položaj ostane
-      znotraj dovoljenih meja.
-    */
     clampPan();
 
   }
@@ -2199,8 +1968,6 @@ function setupReaderTouch(){
 
       /*
         Miške ne obravnavamo kot touch.
-        Levi gumb je namenjen panningu,
-        srednji pa zoomu.
       */
       if(e.pointerType==="mouse"){
 
@@ -2267,8 +2034,7 @@ function setupReaderTouch(){
   );
 
   /*
-    Dvoklik na telefonu/računalniku
-    še vedno deluje kot zoom 2.2x.
+    Dvoklik še vedno deluje kot zoom 2.2x.
   */
   stage.addEventListener(
     "dblclick",
@@ -2290,11 +2056,6 @@ function setupReaderTouch(){
 
       }else{
 
-        /*
-          Zoom se začne na sredini,
-          nato lahko sliko z levim
-          gumbom poljubno premikaš.
-        */
         applyZoom(2.2);
 
       }
@@ -2333,8 +2094,6 @@ function closeReader(event){
     event.stopPropagation();
 
   }
-
-  unlockOrientation();
 
   document.body.classList.remove(
     "reader-active"
