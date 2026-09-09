@@ -237,6 +237,7 @@ button{
   aspect-ratio:3/4;
   background:#000;
   overflow:hidden;
+  cursor:pointer;
 }
 
 .thumb img{
@@ -244,6 +245,12 @@ button{
   height:100%;
   object-fit:cover;
   display:block;
+  cursor:pointer;
+  transition:transform .2s ease;
+}
+
+.thumb:hover img{
+  transform:scale(1.02);
 }
 
 .badge{
@@ -256,6 +263,7 @@ button{
   color:#fff;
   font-size:11px;
   font-weight:700;
+  pointer-events:none;
 }
 
 .cardbody{
@@ -521,7 +529,7 @@ function esc(value){
     ">":"&gt;",
     '"':"&quot;",
     "'":"&#39;"
-  }[c]));
+  }[c]||c));
 }
 
 function icon(name,size=20){
@@ -530,7 +538,7 @@ function icon(name,size=20){
     back:`<path d="M15 18l-6-6 6-6"/>`,
     close:`<path d="M18 6L6 18M6 6l12 12"/>`,
     book:`<path d="M4 5a2 2 0 012-2h5v18H6a2 2 0 01-2-2z"/><path d="M20 5a2 2 0 00-2-2h-5v18h5a2 2 0 002-2z"/>`,
-    settings:`<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.2 1.6l2 1.5-2 3.4-2.3-1a7 7 0 01-2.6 1.5L13.5 21h-3l-.4-2a7 7 0 01-2.6-1.5l-2.3 1-2.3-1 2-3.4-2-1.5A7 7 0 015 12a7 7 0 01.2-1.6l-2-1.5 2-3.4 2.3 1a7 7 0 012.6-1.5l.4-2h3l.4 2a7 7 0 012.6 1.5l2.3-1 2 3.4-2 1.5A7 7 0 0119 12z"/>`,
+    settings:`<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.2 1.6l2 1.5-2 3.4-2.3-1a7 7 0 01-2.6 1.5L13.5 21h-3l-.4-2a7 7 0 01-2.6-1.5l-2.3 1-2.3 1-2-3.4 2-1.5A7 7 0 015 12a7 7 0 01.2-1.6l-2-1.5 2-3.4 2.3 1a7 7 0 012.6-1.5l.4-2h3l.4 2a7 7 0 012.6 1.5l2.3-1 2 3.4-2 1.5A7 7 0 0119 12z"/>`,
     arrow:`<path d="M5 12h14M13 6l6 6-6 6"/>`
   };
 
@@ -788,7 +796,13 @@ function drawLibrary(list){
 
           <article class="card">
 
-            <div class="thumb">
+            <div
+              class="thumb"
+              onclick="openReader('${esc(comic.id)}')"
+              role="button"
+              tabindex="0"
+              aria-label="Odpri strip ${esc(comic.title)}"
+              onkeydown="if(event.key==='Enter' || event.key===' ') openReader('${esc(comic.id)}')">
 
               <img
                 src="${esc(comic.panels?.[0]||"")}"
@@ -867,7 +881,7 @@ async function openReader(id,start=0){
 
   renderReader();
 
-  await requestOrientation();
+  await requestOrientation;
 }
 
 async function requestOrientation(){
@@ -1050,6 +1064,7 @@ function renderReader(){
   setupReaderWheel();
 
   preload();
+
 }
 
 function resizeReader(){
@@ -1085,6 +1100,7 @@ function resizeReader(){
     frame.style.height="100vh";
 
   }
+
 }
 
 function preload(){
@@ -1266,6 +1282,7 @@ function setupReaderWheel(){
       passive:false
     }
   );
+
 }
 
 /* ================= TOUCH ================= */
@@ -1359,6 +1376,7 @@ function setupReaderTouch(){
 
     }
   );
+
 }
 
 function resetZoom(){
